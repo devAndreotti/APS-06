@@ -6,7 +6,10 @@ import math
 class PoseDetector:
     def __init__(self, mode=False, model_complexity=1, smooth=True,
                  detectionCon=0.5, trackCon=0.5):
-        # Inicializa a solução de pose do MediaPipe
+        """
+        Construtor da classe PoseDetector.
+        Inicializa o modelo MediaPipe Pose com parâmetros de configuração.
+        """
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(
             static_image_mode=mode,                # Se True, trata cada imagem de forma independente (sem rastrear sequência)
@@ -15,6 +18,7 @@ class PoseDetector:
             min_detection_confidence=detectionCon, # Confiança mínima para detectar uma pessoa
             min_tracking_confidence=trackCon       # Confiança mínima para rastrear a pose ao longo do tempo
         )
+
         # Ferramenta de desenho do MediaPipe (para landmarks e conexões)
         self.mp_draw = mp.solutions.drawing_utils
         # Guarda o resultado do processamento (pose detectada)
@@ -24,7 +28,13 @@ class PoseDetector:
 
     # Função para detectar a pose em uma imagem
     def find_pose(self, img, draw=True):
-        # Converte a imagem de BGR (OpenCV) para RGB (padrão do MediaPipe)
+        """
+        Detecta a pose humana na imagem e opcionalmente desenha os landmarks.
+        
+        :param img: Frame de imagem no formato BGR (OpenCV)
+        :param draw: Se True, desenha o esqueleto na imagem
+        :return: Imagem com os landmarks desenhados
+        """
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # Processa a imagem e obtém landmarks da pose
         self.results = self.pose.process(img_rgb)
@@ -40,6 +50,14 @@ class PoseDetector:
 
     # Função para extrair coordenadas dos landmarks
     def find_landmarks(self, img, draw=True):
+        """
+        Extrai as coordenadas (x, y) de todos os landmarks detectados.
+        Converte coordenadas normalizadas (0-1) para pixels.
+        
+        :param img: Frame de imagem
+        :param draw: Se True, desenha círculos nos landmarks
+        :return: Lista de landmarks no formato [id, x, y]
+        """
         self.lm_list = []
         # Se a pose foi detectada
         if self.results.pose_landmarks:
@@ -71,3 +89,21 @@ class PoseDetector:
                            math.atan2(y1 - y2, x1 - x2))
         # Ajusta valores negativos para ficar no intervalo [0, 360]
         return angle + 360 if angle < 0 else angle
+
+    def calculate_distance(self, p1, p2):
+        """
+        Calcula a distância euclidiana entre dois landmarks.
+        Útil para medir abertura de pernas, distância entre mãos, etc.
+        
+        :param p1: ID do primeiro landmark
+        :param p2: ID do segundo landmark
+        :return: Distância em pixels
+        """
+        if len(self.lm_list) == 0:
+            return 0
+        
+        x1, y1 = self.lm_list[p1][1], self.lm_list[p1][2]
+        x2, y2 = self.lm_list[p2][1], self.lm_list[p2][2]
+        
+        distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+        return distance

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Contador de Polichinelos (Vídeo)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="upload-container">
+    <h2>Enviar vídeo MP4</h2>
+
+    <form action="{{ url_for('upload_video') }}" method="POST" enctype="multipart/form-data">
+      <input type="file" name="video" accept="video/mp4" required>
+      <button type="submit">Processar vídeo</button>
+    </form>
+
+    <a href="/">Voltar</a>
+  </div>
+
+  {% if video_path %}
+  <div class="video-container">
+    <h3>Resultado:</h3>
+    <img src="{{ url_for('video_feed') }}?modo=arquivo&path={{ video_path }}" width="80%">
+  </div>
+  {% endif %}
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Contagem</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="video-container">
+    <h2>Modo: {{ modo }}</h2>
+    <img src="{{ url_for('video_feed') }}?modo={{ modo }}" width="80%">
+  </div>
+
+  <div class="controls">
+    <button onclick="calibrar()">Calibrar</button>
+    <a href="/">Voltar</a>
+  </div>
+
+  <script>
+    function calibrar() {
+      fetch("/calibrar", { method: "POST" });
+    }
+  </script>
+</body>
+</html>

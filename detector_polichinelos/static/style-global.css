@@ -1,0 +1,452 @@
+/* ============================================================================
+   RESET E BASE
+   ============================================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Import Lucide Icons */
+@import url('https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.css');
+
+/* ============================================================================
+   VARIÁVEIS CSS (APENAS CORES E VALORES FUNDAMENTAIS)
+   ============================================================================ */
+
+:root {
+  /* Cores principais - Design profissional preto e branco */
+  --color-bg: #0f0f0f;
+  --color-surface: rgba(255, 255, 255, 0.08);
+  --color-surface-hover: rgba(255, 255, 255, 0.12);
+  --color-surface-active: rgba(255, 255, 255, 0.18);
+  
+  /* Cores de texto */
+  --color-text: #ffffff;
+  --color-text-muted: #a0a0a0;
+  --color-text-secondary: #666666;
+  
+  /* Cores de destaque - Gradiente sutil */
+  --color-accent: #666666;
+  --color-accent-dark: #e0e0e0;
+  --color-accent-gradient: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  
+  /* Cores de status */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  
+  /* Cores de borda */
+  --color-border: rgba(255, 255, 255, 0.15);
+  --color-border-hover: rgba(255, 255, 255, 0.25);
+  --color-border-accent: rgba(255, 255, 255, 0.4);
+  
+  /* Cores de fundo específicas */
+  --color-bg-overlay: rgba(0, 0, 0, 0.85);
+  --color-bg-card: rgba(255, 255, 255, 0.05);
+  --color-bg-card-hover: rgba(255, 255, 255, 0.1);
+  
+  /* Valores de design */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.4);
+  
+  /* Espaçamentos */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  
+  /* Transições */
+  --transition: all 0.3s ease;
+  --transition-fast: all 0.2s ease;
+}
+
+/* ============================================================================
+   ELEMENTOS BASE
+   ============================================================================ */
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ============================================================================
+   COMPONENTES REUTILIZÁVEIS
+   ============================================================================ */
+
+/* Glassmorfismo base */
+.glass {
+  background: var(--color-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glass:hover::before {
+  opacity: 1;
+}
+
+/* Botões base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 12px var(--space-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover {
+  background: var(--color-surface-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-border-accent);
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-primary {
+  background: var(--color-accent-gradient);
+  border-color: var(--color-accent);
+}
+
+.btn-primary:active {
+  transform: scale(0.95);
+}
+
+/* Layout base */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Container específico para contador de vídeo */
+.contador-video-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Layout específico para contador de vídeo */
+.contador-video-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* Utilitários de texto */
+.text-center { text-align: center; }
+.mb-4 { margin-bottom: var(--space-md); }
+.mt-4 { margin-top: var(--space-md); }
+
+/* Estilos para ícones Lucide */
+.lucide-icon-black {
+  width: 1em;
+  height: 1em;
+  stroke: #000000;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lucide-icon-white {
+  width: 1em;
+  height: 1em;
+  stroke: #ffffff;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Efeitos de brilho para cards */
+.mode-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.mode-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 250%;
+  background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  animation: rotate 4s linear infinite;
+}
+
+.mode-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.mode-card:hover::before {
+  opacity: 1;
+}
+
+.mode-card:hover .mode-icon {
+  transform: scale(1.1);
+}
+
+.mode-card:hover h3 {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.mode-card:hover p {
+  color: #e0e0e0;
+}
+
+.mode-card:hover .btn {
+  background: linear-gradient(135deg, #ffffff, #f0f0f0);
+  color: #000000;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.mode-card:hover .btn .lucide-icon {
+  stroke: #000000;
+}
+
+/* Estilos específicos para ícones dentro dos círculos dos cards */
+.mode-icon .lucide-icon {
+  stroke: #000000;
+  width: 24px;
+  height: 24px;
+}
+
+.mode-icon {
+  width: 60px;
+  height: 60px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-md);
+  transition: all 0.3s ease;
+}
+
+/* ============================================================================
+   COMPONENTES DE DADOS
+   ============================================================================ */
+
+/* Card principal de dados */
+.main-data-card {
+  padding: var(--space-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.main-data-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.main-data-card:hover::before {
+  opacity: 1;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Grid de dados */
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+}
+
+.data-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  transition: var(--transition);
+}
+
+.data-item:hover {
+  background: var(--color-bg-card-hover);
+  border-color: var(--color-border-accent);
+  transform: translateY(-2px);
+}
+
+.data-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--color-accent-gradient);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.data-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.data-item:hover .data-icon::before {
+  opacity: 1;
+}
+
+.data-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.data-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.data-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   ANIMAÇÕES
+   ============================================================================ */
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+@keyframes processingPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.2); }
+}
+
+/* ============================================================================
+   RESPONSIVIDADE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .container { padding: var(--space-md); }
+  .grid { grid-template-columns: 1fr; }
+  .flex { flex-direction: column; }
+}

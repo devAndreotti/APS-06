@@ -1,0 +1,66 @@
+/* ============================================================================
+   PÁGINA INICIAL - LAYOUT E COMPONENTES
+   ============================================================================ */
+
+/* Hero section */
+.hero {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-text), var(--color-accent));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: var(--space-md);
+}
+
+.hero p {
+  color: var(--color-text-muted);
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+}
+
+/* Cards de modo - estende estilos globais */
+.mode-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+  margin: 40px 0;
+}
+
+.mode-card {
+  padding: var(--space-xl);
+  text-align: center;
+  cursor: pointer;
+}
+
+.mode-card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.mode-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-md);
+  font-size: 24px;
+}
+
+.mode-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-sm);
+}
+
+.mode-card p {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 2rem; }
+  .mode-cards { grid-template-columns: 1fr; }
+}

@@ -57,9 +57,9 @@ def process_jumping_jack(lm_list, stage, count, calib):
     return stage, count
 
 
-def processar_video(modo, calibrar_callback):
-    if modo == "arquivo":
-        cap = cv2.VideoCapture("video.mp4")
+def processar_video(video_source, calibrar_callback, update_data_callback=None):
+    if isinstance(video_source, str) and video_source.endswith('.mp4'):
+        cap = cv2.VideoCapture(video_source)
     else:
         cap = cv2.VideoCapture(0)
 
@@ -101,22 +101,19 @@ def processar_video(modo, calibrar_callback):
         # Processa contagem
         stage, count = process_jumping_jack(lm_list, stage, count, calib)
 
-        # Desenho na tela
-        cv2.rectangle(img, (0, 0), (400, 120), (0, 0, 0), -1)
-        cv2.putText(img, f'Polichinelos: {count}', (10, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
-        cv2.putText(img, f'Estado: {stage}', (10, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-        if not calibrated:
-            cv2.putText(img, f'Pressione "Calibrar"', (10, 150),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-
-        # FPS
+        # Calcular FPS
         cTime = time.time()
         fps = 1 / (cTime - pTime) if cTime != pTime else 0
         pTime = cTime
-        cv2.putText(img, f'FPS: {int(fps)}', (20, img.shape[0] - 20),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+        
+        # Atualizar dados via callback para o frontend
+        if update_data_callback:
+            update_data_callback({
+                'jumps': count,
+                'stage': stage,
+                'fps': int(fps),
+                'calibrated': calibrated
+            })
 
         # Envia frame pro navegador
         _, buffer = cv2.imencode('.jpg', img)

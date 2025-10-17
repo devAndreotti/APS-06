@@ -2,24 +2,101 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Contagem</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contador de Polichinelos - {{ modo.title() }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style-global.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style-contador.css') }}">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
-<body>
-  <div class="video-container">
-    <h2>Modo: {{ modo }}</h2>
-    <img src="{{ url_for('video_feed') }}?modo={{ modo }}" width="80%">
+<body class="fullscreen">
+  <!-- Vídeo em tela cheia -->
+  <div class="fullscreen-video">
+    <img src="{{ url_for('video_feed') }}?modo={{ modo }}" 
+         alt="Stream da câmera" 
+         class="video-stream">
   </div>
 
-  <div class="controls">
-    <button onclick="calibrar()">Calibrar</button>
-    <a href="/">Voltar</a>
+  <!-- Cards de Dados em Tempo Real -->
+  <div class="floating-data-cards">
+    <!-- Card Principal de Dados -->
+    <div class="main-data-card glass">
+      <div class="card-header">
+        <h3>Dados em Tempo Real</h3>
+        <div class="status-indicator" id="statusIndicator">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Conectando...</span>
+        </div>
+      </div>
+      
+      <div class="data-grid">
+        <div class="data-item">
+          <div class="data-icon">
+            <i data-lucide="activity" class="lucide-icon"></i>
+          </div>
+          <div class="data-content">
+            <div class="data-value" id="totalJumps">0</div>
+            <div class="data-label">Polichinelos</div>
+          </div>
+        </div>
+        
+        <div class="data-item">
+          <div class="data-icon">
+            <i data-lucide="bar-chart-3" class="lucide-icon"></i>
+          </div>
+          <div class="data-content">
+            <div class="data-value" id="currentStage">Preparando</div>
+            <div class="data-label">Estado Atual</div>
+          </div>
+        </div>
+        
+        <div class="data-item">
+          <div class="data-icon">
+            <i data-lucide="zap" class="lucide-icon"></i>
+          </div>
+          <div class="data-content">
+            <div class="data-value" id="fps">0</div>
+            <div class="data-label">FPS</div>
+          </div>
+        </div>
+        
+        <div class="data-item">
+          <div class="data-icon">
+            <i data-lucide="clock" class="lucide-icon"></i>
+          </div>
+          <div class="data-content">
+            <div class="data-value" id="timer">0:00</div>
+            <div class="data-label">Tempo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Botão Voltar -->
+    <div class="floating-btn-container">
+      <a href="/" class="floating-btn">
+        <i data-lucide="arrow-left" class="lucide-icon"></i>
+        Voltar
+      </a>
+    </div>
+    
   </div>
 
+  <!-- Instruções flutuantes -->
+  <div class="floating-instructions">
+    <div class="instructions-content">
+      <h3>Instruções</h3>
+      <ul>
+        <li>Posicione-se em frente à câmera</li>
+        <li>Mantenha os braços e pernas visíveis</li>
+        <li>Execute os polichinelos de forma clara</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script>
-    function calibrar() {
-      fetch("/calibrar", { method: "POST" });
-    }
+    // Inicializar ícones Lucide
+    lucide.createIcons();
   </script>
 </body>
 </html>

@@ -2,26 +2,270 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Contador de Polichinelos (Vídeo)</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contador de Polichinelos - Upload de Vídeo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style-global.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style-contador-video.css') }}">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
-<body>
-  <div class="upload-container">
-    <h2>Enviar vídeo MP4</h2>
+<body class="contador-video-body">
+  <div class="contador-video-container">
+    <!-- Header -->
+    <header class="video-header">
+      <div class="header-content">
+        <h1>Contador de Polichinelos</h1>
+        <p class="header-subtitle">Análise de Vídeo</p>
+      </div>
+      <a href="/" class="btn btn-back">
+        <i data-lucide="arrow-left" class="lucide-icon"></i>
+        Voltar
+      </a>
+    </header>
 
-    <form action="{{ url_for('upload_video') }}" method="POST" enctype="multipart/form-data">
-      <input type="file" name="video" accept="video/mp4" required>
-      <button type="submit">Processar vídeo</button>
-    </form>
+    {% if not video_path %}
+    <!-- Upload Section -->
+    <main class="upload-section">
+      <div class="upload-card glass">
+        <div class="upload-content">
+          <div class="upload-icon">
+            <i data-lucide="video" class="lucide-icon"></i>
+          </div>
+          <h2>Selecione seu vídeo MP4</h2>
+          <p class="upload-description">Faça upload de um vídeo para análise automática de polichinelos</p>
+          
+          <form action="{{ url_for('upload_video') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+            <div class="file-input-container">
+              <input type="file" name="video" accept="video/mp4" required id="videoInput">
+              <label for="videoInput" class="file-input-label">
+                <i data-lucide="upload" class="file-input-icon"></i>
+                <span class="file-input-text">Clique para selecionar um vídeo</span>
+              </label>
+              <div class="file-name" id="fileName"></div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-large">
+              <i data-lucide="play" class="lucide-icon"></i>
+              Processar Vídeo
+            </button>
+          </form>
+        </div>
+      </div>
 
-    <a href="/">Voltar</a>
+      <!-- Instructions -->
+      <div class="instructions-card glass">
+        <h3>
+          <i data-lucide="info" class="lucide-icon"></i>
+          Instruções para o vídeo
+        </h3>
+        <ul class="instructions-list">
+          <li><strong>Formato:</strong> MP4</li>
+          <li><strong>Tamanho máximo:</strong> 100MB</li>
+          <li><strong>Duração:</strong> 30 segundos a 5 minutos</li>
+          <li><strong>Qualidade:</strong> Polichinelos bem visíveis</li>
+          <li><strong>Câmera:</strong> Evite movimentos bruscos</li>
+        </ul>
+      </div>
+    </main>
+    {% else %}
+    <!-- Video Processing Section -->
+    <main class="processing-section">
+      <!-- Status Header -->
+      <div class="status-header glass">
+        <div class="status-content">
+          <div class="status-icon">
+            <i data-lucide="play-circle" class="lucide-icon"></i>
+          </div>
+          <div class="status-text">
+            <h2>Processando Vídeo</h2>
+            <p>Analisando polichinelos no seu vídeo...</p>
+          </div>
+          <div class="status-indicator" id="statusIndicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Conectando...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="main-content-grid">
+        <!-- Video Player -->
+        <div class="video-section">
+          <div class="video-container">
+            <div class="video-wrapper">
+              <img src="{{ url_for('video_feed') }}?modo=arquivo&path={{ video_path }}" 
+                   alt="Processamento do vídeo" 
+                   class="video-player">
+              <div class="video-overlay">
+                <div class="video-controls">
+                  <button class="control-btn" id="playPauseBtn">
+                    <i data-lucide="play" class="lucide-icon"></i>
+                  </button>
+                  <div class="video-progress">
+                    <div class="progress-bar">
+                      <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Sidebar -->
+        <aside class="stats-sidebar">
+          <div class="stats-card glass">
+            <div class="stats-header">
+              <h3>
+                <i data-lucide="activity" class="lucide-icon"></i>
+                Dados em Tempo Real
+              </h3>
+            </div>
+            
+            <div class="stats-grid">
+              <div class="stat-item primary">
+                <div class="stat-icon">
+                  <i data-lucide="activity" class="lucide-icon"></i>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-value" id="totalJumps">0</div>
+                  <div class="stat-label">Polichinelos</div>
+                </div>
+              </div>
+              
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i data-lucide="bar-chart-3" class="lucide-icon"></i>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-value" id="currentStage">Preparando</div>
+                  <div class="stat-label">Estado Atual</div>
+                </div>
+              </div>
+              
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i data-lucide="zap" class="lucide-icon"></i>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-value" id="fps">0</div>
+                  <div class="stat-label">FPS</div>
+                </div>
+              </div>
+              
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i data-lucide="clock" class="lucide-icon"></i>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-value" id="videoDuration">0:00</div>
+                  <div class="stat-label">Duração</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Upload Section -->
+          <div class="new-upload-card glass">
+            <h4>
+              <i data-lucide="upload" class="lucide-icon"></i>
+              Novo Upload
+            </h4>
+            <div class="file-input-container">
+              <input type="file" name="video" accept="video/mp4" required id="newVideoInput">
+              <label for="newVideoInput" class="file-input-label">
+                <i data-lucide="video" class="file-input-icon"></i>
+                <span class="file-input-text">Escolher Arquivo</span>
+              </label>
+              <div class="file-name" id="newFileName"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+    {% endif %}
   </div>
 
-  {% if video_path %}
-  <div class="video-container">
-    <h3>Resultado:</h3>
-    <img src="{{ url_for('video_feed') }}?modo=arquivo&path={{ video_path }}" width="80%">
-  </div>
-  {% endif %}
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    // Inicializar ícones Lucide
+    lucide.createIcons();
+    
+    // Gerenciar input de arquivo original
+    const videoInput = document.getElementById('videoInput');
+    const fileName = document.getElementById('fileName');
+    const fileLabel = document.querySelector('.file-input-label');
+    const fileText = document.querySelector('.file-input-text');
+    
+    if (videoInput && fileName && fileLabel && fileText) {
+      videoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          fileName.textContent = file.name;
+          fileName.classList.add('show');
+          fileText.textContent = 'Arquivo selecionado';
+          fileLabel.style.borderColor = 'var(--color-accent)';
+          fileLabel.style.borderStyle = 'solid';
+        } else {
+          fileName.textContent = '';
+          fileName.classList.remove('show');
+          fileText.textContent = 'Clique para selecionar um vídeo';
+          fileLabel.style.borderColor = 'var(--color-border-hover)';
+          fileLabel.style.borderStyle = 'dashed';
+        }
+      });
+    }
+    
+    // Gerenciar novo input de arquivo
+    const newVideoInput = document.getElementById('newVideoInput');
+    const newFileName = document.getElementById('newFileName');
+    const newFileLabel = document.querySelector('#newVideoInput + .file-input-label');
+    const newFileText = document.querySelector('#newVideoInput + .file-input-label .file-input-text');
+    
+    if (newVideoInput && newFileName && newFileLabel && newFileText) {
+      newVideoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          newFileName.textContent = file.name;
+          newFileName.classList.add('show');
+          newFileText.textContent = 'Arquivo selecionado';
+          newFileLabel.style.borderColor = 'var(--color-accent)';
+          newFileLabel.style.borderStyle = 'solid';
+          
+          // Fazer upload automático
+          const formData = new FormData();
+          formData.append('video', file);
+          
+          // Mostrar indicador de carregamento
+          newFileText.textContent = 'Enviando...';
+          newFileLabel.style.opacity = '0.7';
+          
+          fetch('/upload_video', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => {
+            if (response.ok) {
+              // Recarregar a página com o novo vídeo
+              window.location.reload();
+            } else {
+              throw new Error('Erro no upload');
+            }
+          })
+          .catch(error => {
+            console.error('Erro:', error);
+            newFileText.textContent = 'Erro no upload';
+            newFileLabel.style.opacity = '1';
+            newFileLabel.style.borderColor = 'var(--color-error)';
+          });
+        } else {
+          newFileName.textContent = '';
+          newFileName.classList.remove('show');
+          newFileText.textContent = 'Novo Upload';
+          newFileLabel.style.borderColor = 'var(--color-border-hover)';
+          newFileLabel.style.borderStyle = 'dashed';
+        }
+      });
+    }
+  </script>
 </body>
 </html>

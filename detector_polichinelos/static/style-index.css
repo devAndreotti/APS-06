@@ -6,6 +6,8 @@
 .hero {
   text-align: center;
   padding: 60px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .hero h1 {
@@ -30,6 +32,8 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-lg);
   margin: 40px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .mode-card {

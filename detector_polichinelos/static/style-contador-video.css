@@ -5,14 +5,17 @@
 /* Layout específico para contador de vídeo */
 .contador-video-body {
   min-height: 100vh;
-  background: var(--color-bg);
   padding: var(--space-md);
+  position: relative;
+  z-index: 1;
 }
 
 .contador-video-container {
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* Header */
@@ -59,6 +62,10 @@
   background: var(--color-surface-hover);
   border-color: var(--color-accent);
   transform: translateY(-2px);
+}
+
+.btn-back:active {
+  transform: scale(0.98);
 }
 
 /* ============================================================================

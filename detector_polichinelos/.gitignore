@@ -7,3 +7,7 @@ __pycache__/
 # Ignorar arquivos de configuração de editores de código
 .vscode/
 .idea/
+
+# Ignorar pastas de uploads e arquivos de vídeo
+uploads/
+*.mp4

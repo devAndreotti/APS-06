@@ -52,9 +52,15 @@ def upload_video():
         save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(save_path)
         print(f"vídeo salvo em: {save_path}")
-        # Redirecionar para a mesma página com o vídeo
+        reset_data()  # Resetar dados para o novo vídeo
+        # Se for uma requisição AJAX (fetch), retornar JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.accept_json:
+            return jsonify({'success': True, 'filename': file.filename})
+        # Caso contrário, redirecionar (form tradicional)
         return redirect(url_for('contador_video', video=file.filename))
     else:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.accept_json:
+            return jsonify({'success': False, 'error': 'Arquivo inválido'}), 400
         return "Envie um arquivo .mp4 válido.", 400
 
 @app.route('/video_feed')

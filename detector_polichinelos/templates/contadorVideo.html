@@ -241,14 +241,18 @@
           
           fetch('/upload_video', {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
           })
-          .then(response => {
-            if (response.ok) {
-              // Recarregar a página com o novo vídeo
-              window.location.reload();
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Redirecionar para a página com o novo vídeo
+              window.location.href = '/contador_video?video=' + encodeURIComponent(data.filename);
             } else {
-              throw new Error('Erro no upload');
+              throw new Error(data.error || 'Erro no upload');
             }
           })
           .catch(error => {

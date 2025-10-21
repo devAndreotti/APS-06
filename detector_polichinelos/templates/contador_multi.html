@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contador de Polichinelos - Múltiplas Pessoas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style-global.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style-contador.css') }}">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="fullscreen">
+
+  <!-- Vídeo em tela cheia -->
+  <div class="fullscreen-video">
+      <img src="{{ url_for('video_feed_multi') }}" 
+          alt="Stream da câmera" 
+          class="video-stream">
+  </div>
+
+  <!-- Cards de Dados em Tempo Real -->
+  <div class="floating-data-cards">
+
+    <!-- Card principal -->
+    <div class="main-data-card glass">
+      <div class="card-header">
+        <h3>Monitoramento em Tempo Real</h3>
+        <div class="status-indicator" id="statusIndicator">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Conectando...</span>
+        </div>
+      </div>
+
+      <div id="pessoas-container" class="data-grid">
+        <!-- As pessoas detectadas serão inseridas aqui dinamicamente -->
+      </div>
+    </div>
+
+    <!-- Botões de controle -->
+    <div class="floating-btn-container">
+      <a href="/" class="floating-btn">
+        <i data-lucide="arrow-left" class="lucide-icon"></i>
+        Voltar
+      </a>
+      <button onclick="fetch('/modo/1', {method:'POST'})">1 Pessoa</button>
+      <button onclick="fetch('/modo/2', {method:'POST'})">2 Pessoas</button>
+    </div>
+  </div>
+
+  <!-- Instruções flutuantes -->
+  <div class="floating-instructions">
+    <div class="instructions-content">
+      <h3>Instruções</h3>
+      <ul>
+        <li>Posicione-se em frente à câmera</li>
+        <li>Mantenha o corpo todo visível</li>
+        <li>Execute os polichinelos de forma clara</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    lucide.createIcons();
+
+    async function atualizarDados() {
+      try {
+        const response = await fetch('/api/data_multi');
+        const data = await response.json();
+
+        // Atualiza status
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+        statusText.textContent = data.stage || 'Desconhecido';
+        statusDot.style.background = data.stage === 'Contando' ? '#00ff66' : '#ffaa00';
+
+        const container = document.getElementById('pessoas-container');
+        container.innerHTML = '';
+
+        if (data.pessoas && data.pessoas.length > 0) {
+          data.pessoas.forEach((pessoa, index) => {
+            const pessoaCard = document.createElement('div');
+            pessoaCard.classList.add('data-item');
+            pessoaCard.innerHTML = `
+              <div class="data-icon">
+                <i data-lucide="user" class="lucide-icon"></i>
+              </div>
+              <div class="data-content">
+                <div class="data-value">Pessoa ${index + 1}</div>
+                <div class="data-label">Polichinelos: ${pessoa.jumps}</div>
+                <div class="data-label">FPS: ${pessoa.fps}</div>
+              </div>
+            `;
+            container.appendChild(pessoaCard);
+          });
+          lucide.createIcons();
+        } else {
+          container.innerHTML = `<p>Nenhuma pessoa detectada</p>`;
+        }
+
+      } catch (err) {
+        console.error('Erro ao buscar dados:', err);
+      }
+    }
+
+    setInterval(atualizarDados, 1000);
+  </script>
+</body>
+</html>

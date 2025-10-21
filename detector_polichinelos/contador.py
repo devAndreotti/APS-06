@@ -41,17 +41,23 @@ def has_required_landmarks(lm_list, ids):
 def process_jumping_jack(lm_list, stage, count, calib, img, last_valid_lm):
     required_ids = [11, 12, 15, 16, 23, 24, 27, 28]  # IDs dos pontos usados (ombros, punhos, quadris e tornozelos)
 
+    # Se não há calibração, retorna imediatamente (não deveria acontecer mais)
+    if calib is None:
+        return stage, count, last_valid_lm
+
     # Se landmarks estiverem incompletos, tenta usar o último válido
     if not has_required_landmarks(lm_list, required_ids):
-        if last_valid_lm is not None:
+        if last_valid_lm is not None and has_required_landmarks(last_valid_lm, required_ids):
             lm_list = last_valid_lm
         else:
             return stage, count, last_valid_lm  # Sai se não houver dados válidos
 
-    last_valid_lm = lm_list  # Atualiza o último frame válido
+    # Atualiza o último frame válido apenas se tiver todos os pontos necessários
+    if has_required_landmarks(lm_list, required_ids):
+        last_valid_lm = lm_list
 
-    # Se não houver landmarks ou calibração, não faz nada
-    if len(lm_list) == 0 or calib is None:
+    # Se não houver landmarks suficientes, não faz nada
+    if len(lm_list) == 0 or len(lm_list) < 29:
         return stage, count, last_valid_lm
 
     # Captura coordenadas dos principais pontos do corpo
@@ -118,9 +124,14 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
         img = detector.find_pose(img)
         lm_list = detector.find_landmarks(img)
 
+        # Força calibração padrão ANTES de qualquer processamento
+        if not calibrated:
+            calib = {"perna": 1.5}
+            calibrated = True
+
         # Calibração manual (quando o callback é acionado)
         if calibrar_callback():
-            if lm_list:
+            if lm_list and len(lm_list) > 28:
                 quadril_esq = lm_list[23][1:]
                 quadril_dir = lm_list[24][1:]
                 tornozelo_esq = lm_list[27][1:]
@@ -132,12 +143,7 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
                 calibrated = True
                 print("Calibrado!")
 
-        # Força calibração padrão se ainda não houver
-        if not calibrated:
-            calib = {"perna": 1.5}
-            calibrated = True
-
-        # Processar contagem
+        # Processar contagem (agora calib nunca será None)
         stage, count, last_valid_lm = process_jumping_jack(
             lm_list, stage, count, calib, img, last_valid_lm
         )

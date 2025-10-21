@@ -11,7 +11,7 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 CALIBRAR = False
 CURRENT_DATA = {
     'jumps': 0,
-    'stage': 'Preparando',
+    'stage': 'down',
     'fps': 0,
     'calibrated': False
 }
@@ -21,7 +21,7 @@ def reset_data():
     global CURRENT_DATA
     CURRENT_DATA = {
         'jumps': 0,
-        'stage': 'Preparando',
+        'stage': 'down',
         'fps': 0,
         'calibrated': False
     }
@@ -86,7 +86,7 @@ def video_feed():
     def update_data_callback(data):
         global CURRENT_DATA
         # Só atualizar se os dados forem válidos e não negativos
-        if isinstance(data, dict) and 'jumps' in data and data['jumps'] >= 0:
+        if isinstance(data, dict):
             CURRENT_DATA.update(data)
 
     if modo == 'arquivo' and path:

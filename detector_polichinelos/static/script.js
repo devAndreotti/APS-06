@@ -200,7 +200,7 @@ const initPage = () => {
   } else if (currentPage === '/contador_video') {
     // Verificar se há um vídeo sendo processado pela URL ou pelo HTML
     const hasVideoInUrl = window.location.search.includes('video=');
-    const hasVideoInHtml = document.querySelector('.result-section');
+    const hasVideoInHtml = document.querySelector('.processing-section');
     
     if (hasVideoInUrl || hasVideoInHtml) {
       // Se há vídeo sendo processado, inicializar sistema de dados

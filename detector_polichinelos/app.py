@@ -59,12 +59,15 @@ def upload_video():
         print(f"vídeo salvo em: {save_path}")
         reset_data()  # Resetar dados para o novo vídeo
         # Se for uma requisição AJAX (fetch), retornar JSON
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.accept_json:
+        # .best verifica se application/json é a PRIMEIRA prioridade no Accept header
+        is_ajax = request.accept_mimetypes.best == 'application/json'
+        if is_ajax:
             return jsonify({'success': True, 'filename': file.filename})
         # Caso contrário, redirecionar (form tradicional)
         return redirect(url_for('contador_video', video=file.filename))
     else:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.accept_json:
+        is_ajax = request.accept_mimetypes.best == 'application/json'
+        if is_ajax:
             return jsonify({'success': False, 'error': 'Arquivo inválido'}), 400
         return "Envie um arquivo .mp4 válido.", 400
 

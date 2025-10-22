@@ -26,6 +26,16 @@ def reset_data():
         'calibrated': False
     }
 
+def reset_data_multi():
+    """Reseta os dados do modo multi para valores iniciais"""
+    global CURRENT_DATA1
+    CURRENT_DATA1 = {
+        'pessoas': [
+            {"jumps": 0, "stage": "down", "fps": 0},  # pessoa 1
+            {"jumps": 0, "stage": "down", "fps": 0}   # pessoa 2
+        ]
+    }
+
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 @app.route('/')
@@ -114,6 +124,12 @@ def reset():
     reset_data()
     return "Dados resetados", 200
 
+@app.route('/reset_multi', methods=['POST'])
+def reset_multi():
+    """Rota para resetar dados do modo multi"""
+    reset_data_multi()
+    return "Dados multi resetados", 200
+
 @app.route('/api/data')
 def get_data():
     global CURRENT_DATA
@@ -125,9 +141,11 @@ def toggle_mode():
     current_mode = request.form.get('current_mode')
     if current_mode == '1':
         # Se está em 1 pessoa, vai para 2 pessoas
+        reset_data_multi()  # Resetar dados do modo multi
         return redirect(url_for('contador_multi'))
     else:
         # Se está em 2 pessoas, vai para 1 pessoa (webcam)
+        reset_data()  # Resetar dados do modo single
         return redirect(url_for('contador', modo='webcam'))
 
 # definir a variável global
@@ -141,6 +159,7 @@ CURRENT_DATA1 = {
 # Rota para exibir a página do contador multi
 @app.route('/contador_multi', methods=['GET'])
 def contador_multi():
+    reset_data_multi()  # Resetar dados ao entrar no modo multi
     return render_template('contador_multi.html')
 
 # Rota da API para enviar dados do contador multi

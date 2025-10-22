@@ -67,6 +67,16 @@
   <script>
     lucide.createIcons();
 
+    // Resetar dados ao carregar a página
+    fetch('/reset_multi', { method: 'POST' }).catch(() => {});
+
+    // Resetar dados quando a página perde o foco (usuário sai da aba)
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        fetch('/reset_multi', { method: 'POST' }).catch(() => {});
+      }
+    });
+
     async function atualizarDados() {
       try {
         const response = await fetch('/api/data_multi');

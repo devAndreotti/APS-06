@@ -19,6 +19,11 @@ class ContadorPolichinelos:
         self.pessoa2 = {"stage": "down", "count": 0, "last_valid_lm": None, "calib": {"perna": 1.5}}
         self.pTime = 0  # Para cálculo do FPS
 
+    def reset_contadores(self):
+        """Reseta os contadores e estados das duas pessoas"""
+        self.pessoa1 = {"stage": "down", "count": 0, "last_valid_lm": None, "calib": {"perna": 1.5}}
+        self.pessoa2 = {"stage": "down", "count": 0, "last_valid_lm": None, "calib": {"perna": 1.5}}
+
     def find_pose(self, img, draw=True):
         """
         Detecta a pose em uma imagem e desenha os pontos do corpo se 'draw' for True.
@@ -108,6 +113,9 @@ class ContadorPolichinelos:
         """
         cap = cv2.VideoCapture(fonte)
         print("Modo 2 pessoas permanente ativo!")
+        
+        # Resetar contadores ao iniciar
+        self.reset_contadores()
 
         while True:
             success, img = cap.read()
@@ -144,8 +152,14 @@ class ContadorPolichinelos:
 
             # Envia dados atualizados (usado pelo Flask via callback)
             update_data_callback({
-                "jumps": self.pessoa1["count"] + self.pessoa2["count"],  # Total de polichinelos
-                "stage": f"P1:{self.pessoa1['stage']} | P2:{self.pessoa2['stage']}",  # Estado atual
+                "pessoa1": {
+                    "count": self.pessoa1["count"],
+                    "stage": self.pessoa1["stage"]
+                },
+                "pessoa2": {
+                    "count": self.pessoa2["count"],
+                    "stage": self.pessoa2["stage"]
+                },
                 "fps": int(fps)
             })
 

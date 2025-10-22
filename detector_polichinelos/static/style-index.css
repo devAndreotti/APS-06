@@ -39,7 +39,6 @@
 .mode-card {
   padding: var(--space-xl);
   text-align: center;
-  cursor: pointer;
 }
 
 .mode-card:hover {

@@ -37,12 +37,17 @@
 
     <!-- Botões de controle -->
     <div class="floating-btn-container">
-      <a href="/" class="floating-btn">
+      <a href="/" class="floating-btn btn-back">
         <i data-lucide="arrow-left" class="lucide-icon"></i>
         Voltar
       </a>
-      <button onclick="fetch('/modo/1', {method:'POST'})">1 Pessoa</button>
-      <button onclick="fetch('/modo/2', {method:'POST'})">2 Pessoas</button>
+      <form action="{{ url_for('toggle_mode') }}" method="POST" style="display: inline;">
+        <input type="hidden" name="current_mode" value="2">
+        <button type="submit" class="floating-btn btn-mode">
+          <i data-lucide="user" class="lucide-icon"></i>
+          1 Pessoa
+        </button>
+      </form>
     </div>
   </div>
 

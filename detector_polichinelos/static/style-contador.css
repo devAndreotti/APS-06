@@ -17,21 +17,83 @@
   margin-top: var(--space-md);
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
 }
 
 /* Botão voltar flutuante - estende estilos globais */
 .floating-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
   background: var(--color-bg-overlay);
-  border-color: var(--color-border-accent);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: 10;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.floating-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.floating-btn:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.floating-btn:hover::before {
+  opacity: 1;
+}
+
+.floating-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .floating-btn .lucide-icon {
   width: 16px;
   height: 16px;
   stroke: var(--color-text);
+  transition: var(--transition-fast);
+}
+
+/* Botão de modo específico (1 Pessoa / 2 Pessoas) */
+.btn-mode {
+  background: var(--color-surface);
+  border-color: var(--color-border-hover);
+}
+
+.btn-mode:hover {
+  background: var(--color-surface-active);
+  border-color: var(--color-accent);
+}
+
+.btn-mode:hover .lucide-icon {
+  stroke: var(--color-accent);
+  transform: scale(1.1);
+}
+
+/* Botão voltar específico */
+.btn-back:hover .lucide-icon {
+  transform: translateX(-2px);
 }
 
 .fullscreen-video {
@@ -199,11 +261,17 @@
 @media (max-width: 768px) {
   .floating-btn-container {
     margin-bottom: var(--space-sm);
+    gap: var(--space-xs);
   }
   
   .floating-btn {
-    padding: 10px 16px;
-    font-size: 0.9rem;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+
+  .btn-mode {
+    flex: 1;
+    justify-content: center;
   }
   
   .floating-data-cards {
@@ -254,16 +322,23 @@
 @media (max-width: 480px) {
   .floating-btn-container {
     margin-bottom: var(--space-xs);
+    flex-direction: column;
   }
   
   .floating-btn {
     padding: 8px 12px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    width: 100%;
+    justify-content: center;
   }
   
   .floating-btn .lucide-icon {
     width: 14px;
     height: 14px;
+  }
+
+  .btn-back {
+    order: 3;
   }
   
   .floating-instructions {

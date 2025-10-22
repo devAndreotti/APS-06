@@ -32,12 +32,17 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 def index():
     return render_template('index.html')
 
-@app.route('/contador', methods=['POST'])
+@app.route('/contador', methods=['GET', 'POST'])
 def contador():
     reset_data()  # Resetar dados para nova sessão
-    modo = request.form.get('modo')
-    if modo == "arquivo":
-        return redirect(url_for('contador_video'))
+    
+    if request.method == 'POST':
+        modo = request.form.get('modo')
+        if modo == "arquivo":
+            return redirect(url_for('contador_video'))
+    else:
+        # GET request - modo padrão é webcam
+        modo = request.args.get('modo', 'webcam')
     
     return render_template('contador.html', modo=modo)
 
@@ -113,6 +118,17 @@ def reset():
 def get_data():
     global CURRENT_DATA
     return jsonify(CURRENT_DATA)
+
+# Rota para alternar entre modo 1 pessoa e 2 pessoas
+@app.route('/toggle_mode', methods=['POST'])
+def toggle_mode():
+    current_mode = request.form.get('current_mode')
+    if current_mode == '1':
+        # Se está em 1 pessoa, vai para 2 pessoas
+        return redirect(url_for('contador_multi'))
+    else:
+        # Se está em 2 pessoas, vai para 1 pessoa (webcam)
+        return redirect(url_for('contador', modo='webcam'))
 
 # definir a variável global
 CURRENT_DATA1 = {

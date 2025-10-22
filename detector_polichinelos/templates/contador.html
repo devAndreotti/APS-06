@@ -77,9 +77,14 @@
         <i data-lucide="arrow-left" class="lucide-icon"></i>
         Voltar
       </a>
-    <button onclick="window.location.href='/contador'">1 Pessoa</button>
-    <button onclick="window.location.href='/contador_multi'">2 Pessoas</button>
-  </div>
+      <form action="{{ url_for('toggle_mode') }}" method="POST" style="display: inline;">
+        <input type="hidden" name="current_mode" value="1">
+        <button type="submit" class="floating-btn btn-mode">
+          <i data-lucide="users" class="lucide-icon"></i>
+          2 Pessoas
+        </button>
+      </form>
+    </div>
         
   </div>
 

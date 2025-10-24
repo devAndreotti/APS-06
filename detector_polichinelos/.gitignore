@@ -11,3 +11,6 @@ __pycache__/
 # Ignorar pastas de uploads e arquivos de vídeo
 uploads/
 *.mp4
+
+# Ignorar relatórios de teste de performance gerados automaticamente
+tests/reports/

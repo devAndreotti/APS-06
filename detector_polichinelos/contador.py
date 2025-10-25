@@ -141,7 +141,7 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
                 fator_perna = dist_tornozelos / dist_quadris * 1.5
                 calib = {"perna": fator_perna}
                 calibrated = True
-                print("Calibrado!")
+                # print("Calibrado!")  # Debug removido
 
         # Processar contagem (agora calib nunca será None)
         stage, count, last_valid_lm = process_jumping_jack(

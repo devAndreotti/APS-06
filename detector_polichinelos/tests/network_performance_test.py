@@ -1283,9 +1283,9 @@ async def main():
     print(f"  3. A aplicação deve estar acessível em http://localhost:5000")
     print(f"  4. URLs das páginas:")
     print(f"     • Index: http://localhost:5000/")
-    print(f"     • Contador: http://localhost:5000/contador")
-    print(f"     • Contador Multi: http://localhost:5000/contador_multi")
-    print(f"     • Contador Video: http://localhost:5000/contador_video")
+    print(f"     • Detector: http://localhost:5000/contador")
+    print(f"     • Detector Multi: http://localhost:5000/contador_multi")
+    print(f"     • Detector Video: http://localhost:5000/contador_video")
     print(f"  5. Este teste navegará pelas páginas automaticamente")
     
     Colors.print_section("IMPORTANTE")

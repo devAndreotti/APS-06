@@ -25,9 +25,9 @@ python network_performance_test.py
 
 Navega automaticamente pelas páginas:
 - `/index` - Página inicial
-- `/contador` - Contador de polichinelos (webcam)
-- `/contador_multi` - Contador para múltiplas pessoas
-- `/contadorVideo` - Contador com vídeo carregado
+- `/contador` - Detector de polichinelos (webcam)
+- `/contador_multi` - Detector para múltiplas pessoas
+- `/contador_video` - Detector com vídeo carregado
 
 ## 📈 Métricas Coletadas
 

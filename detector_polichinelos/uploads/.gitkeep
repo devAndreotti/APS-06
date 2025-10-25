@@ -1,0 +1,3 @@
+# Este arquivo garante que a pasta uploads/ seja mantida no Git
+# mesmo quando estiver vazia. Os arquivos de vídeo são ignorados
+# pelo .gitignore, mas a pasta permanece no repositório.

@@ -8,9 +8,21 @@ __pycache__/
 .vscode/
 .idea/
 
-# Ignorar pastas de uploads e arquivos de vídeo
-uploads/
+# Ignorar apenas arquivos de vídeo (mantém a pasta uploads/)
+uploads/*.mp4
+uploads/*.avi
+uploads/*.mov
+uploads/*.mkv
+uploads/*.wmv
+uploads/*.flv
+uploads/*.webm
 *.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
 
 # Ignorar relatórios de teste de performance gerados automaticamente
 tests/reports/

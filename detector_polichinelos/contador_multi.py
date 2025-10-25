@@ -112,7 +112,7 @@ class ContadorPolichinelos:
         Suporta duas pessoas na mesma imagem (dividida ao meio).
         """
         cap = cv2.VideoCapture(fonte)
-        print("Modo 2 pessoas permanente ativo!")
+        # print("Modo 2 pessoas ativo!")  # Debug removido
         
         # Resetar contadores ao iniciar
         self.reset_contadores()

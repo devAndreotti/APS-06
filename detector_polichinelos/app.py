@@ -63,7 +63,7 @@ def contador_video():
     video_path = request.args.get('video')
     if video_path:
         reset_data()  # Resetar dados quando um novo vídeo é carregado
-    return render_template('contadorVideo.html', video_path=video_path)
+    return render_template('contador_video.html', video_path=video_path)
 
 @app.route('/upload_video', methods=['POST'])
 def upload_video():
@@ -71,7 +71,7 @@ def upload_video():
     if file and file.filename.endswith('.mp4'):
         save_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(save_path)
-        print(f"vídeo salvo em: {save_path}")
+        # print(f"vídeo salvo em: {save_path}")  # Debug removido
         reset_data()  # Resetar dados para o novo vídeo
         # Se for uma requisição AJAX (fetch), retornar JSON
         # .best verifica se application/json é a PRIMEIRA prioridade no Accept header
@@ -203,6 +203,6 @@ def video_feed_multi():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
 
 

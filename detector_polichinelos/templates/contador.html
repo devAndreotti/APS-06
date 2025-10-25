@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+  <!-- Meta tags básicas -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detector de Polichinelos - {{ modo.title() }}</title>
+  
+  <!-- Estilos CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='contador.css') }}">
+  
+  <!-- Biblioteca de ícones Lucide -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body class="fullscreen">
-  <!-- Vídeo em tela cheia -->
+  
+  <!-- Seção de vídeo em tela cheia -->
   <div class="fullscreen-video">
     <img src="{{ url_for('video_feed') }}?modo={{ modo }}" 
          alt="Stream da câmera" 
          class="video-stream">
   </div>
 
-  <!-- Cards de Dados em Tempo Real -->
+  <!-- Cards de dados flutuantes em tempo real -->
   <div class="floating-data-cards">
-    <!-- Card Principal de Dados -->
+    
+    <!-- Card principal com dados de monitoramento -->
     <div class="main-data-card glass">
       <div class="card-header">
         <h3>Dados em Tempo Real</h3>
@@ -28,7 +35,10 @@
         </div>
       </div>
       
+      <!-- Grid de dados principais -->
       <div class="data-grid">
+        
+        <!-- Contador de polichinelos -->
         <div class="data-item">
           <div class="data-icon">
             <i data-lucide="activity" class="lucide-icon"></i>
@@ -39,6 +49,7 @@
           </div>
         </div>
         
+        <!-- Estado atual do sistema -->
         <div class="data-item">
           <div class="data-icon">
             <i data-lucide="bar-chart-3" class="lucide-icon"></i>
@@ -49,6 +60,7 @@
           </div>
         </div>
         
+        <!-- FPS do sistema -->
         <div class="data-item">
           <div class="data-icon">
             <i data-lucide="zap" class="lucide-icon"></i>
@@ -59,6 +71,7 @@
           </div>
         </div>
         
+        <!-- Timer de exercício -->
         <div class="data-item">
           <div class="data-icon">
             <i data-lucide="clock" class="lucide-icon"></i>
@@ -68,15 +81,20 @@
             <div class="data-label">Tempo</div>
           </div>
         </div>
+        
       </div>
     </div>
     
-    <!-- Botão Voltar -->
+    <!-- Container de botões flutuantes -->
     <div class="floating-btn-container">
+      
+      <!-- Botão voltar para página inicial -->
       <a href="/" class="floating-btn">
         <i data-lucide="arrow-left" class="lucide-icon"></i>
         Voltar
       </a>
+      
+      <!-- Botão para alternar modo (1 pessoa / 2 pessoas) -->
       <form action="{{ url_for('toggle_mode') }}" method="POST" style="display: inline;">
         <input type="hidden" name="current_mode" value="1">
         <button type="submit" class="floating-btn btn-mode">
@@ -84,11 +102,12 @@
           2 Pessoas
         </button>
       </form>
+      
     </div>
         
   </div>
 
-  <!-- Instruções flutuantes -->
+  <!-- Instruções flutuantes para o usuário -->
   <div class="floating-instructions">
     <div class="instructions-content">
       <h3>Instruções</h3>
@@ -100,9 +119,10 @@
     </div>
   </div>
 
+  <!-- Scripts JavaScript -->
   <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script>
-    // Inicializar ícones Lucide
+    // Inicializar ícones Lucide após carregamento da página
     lucide.createIcons();
   </script>
 </body>

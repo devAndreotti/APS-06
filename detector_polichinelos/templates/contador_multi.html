@@ -1,26 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+  <!-- Meta tags básicas -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detector de Polichinelos - Múltiplas Pessoas</title>
+  
+  <!-- Estilos CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='contador.css') }}">
+  
+  <!-- Biblioteca de ícones Lucide -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body class="fullscreen">
 
-  <!-- Vídeo em tela cheia -->
+  <!-- Seção de vídeo em tela cheia para múltiplas pessoas -->
   <div class="fullscreen-video">
       <img src="{{ url_for('video_feed_multi') }}" 
           alt="Stream da câmera" 
           class="video-stream">
   </div>
 
-  <!-- Cards de Dados em Tempo Real -->
+  <!-- Cards de dados flutuantes em tempo real -->
   <div class="floating-data-cards">
 
-    <!-- Card principal -->
+    <!-- Card principal de monitoramento -->
     <div class="main-data-card glass">
       <div class="card-header">
         <h3>Monitoramento em Tempo Real</h3>
@@ -30,17 +35,22 @@
         </div>
       </div>
 
+      <!-- Container dinâmico para dados das pessoas detectadas -->
       <div id="pessoas-container" class="data-grid">
-        <!-- As pessoas detectadas serão inseridas aqui dinamicamente -->
+        <!-- As pessoas detectadas serão inseridas aqui dinamicamente via JavaScript -->
       </div>
     </div>
 
-    <!-- Botões de controle -->
+    <!-- Container de botões de controle -->
     <div class="floating-btn-container">
+      
+      <!-- Botão voltar para página inicial -->
       <a href="/" class="floating-btn btn-back">
         <i data-lucide="arrow-left" class="lucide-icon"></i>
         Voltar
       </a>
+      
+      <!-- Botão para alternar modo (2 pessoas / 1 pessoa) -->
       <form action="{{ url_for('toggle_mode') }}" method="POST" style="display: inline;">
         <input type="hidden" name="current_mode" value="2">
         <button type="submit" class="floating-btn btn-mode">
@@ -48,10 +58,11 @@
           1 Pessoa
         </button>
       </form>
+      
     </div>
   </div>
 
-  <!-- Instruções flutuantes -->
+  <!-- Instruções flutuantes para múltiplas pessoas -->
   <div class="floating-instructions">
     <div class="instructions-content">
       <h3>Instruções</h3>
@@ -63,8 +74,10 @@
     </div>
   </div>
 
+  <!-- Scripts JavaScript -->
   <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script>
+    // Inicializar ícones Lucide após carregamento da página
     lucide.createIcons();
 
     // Resetar dados ao carregar a página
@@ -77,21 +90,24 @@
       }
     });
 
+    // Função para atualizar dados das pessoas detectadas
     async function atualizarDados() {
       try {
         const response = await fetch('/api/data_multi');
         const data = await response.json();
 
-        // Atualiza status
+        // Atualizar status do sistema
         const statusText = document.getElementById('statusText');
         const statusDot = document.getElementById('statusDot');
         statusText.textContent = data.stage || 'Desconhecido';
         statusDot.style.background = data.stage === 'Contando' ? '#00ff66' : '#ffaa00';
 
+        // Atualizar container de pessoas
         const container = document.getElementById('pessoas-container');
         container.innerHTML = '';
 
         if (data.pessoas && data.pessoas.length > 0) {
+          // Criar cards para cada pessoa detectada
           data.pessoas.forEach((pessoa, index) => {
             const pessoaCard = document.createElement('div');
             pessoaCard.classList.add('data-item');
@@ -107,6 +123,7 @@
             `;
             container.appendChild(pessoaCard);
           });
+          // Recriar ícones após inserir novos elementos
           lucide.createIcons();
         } else {
           container.innerHTML = `<p>Nenhuma pessoa detectada</p>`;
@@ -117,6 +134,7 @@
       }
     }
 
+    // Atualizar dados a cada segundo
     setInterval(atualizarDados, 1000);
   </script>
 </body>

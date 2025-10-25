@@ -1,21 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+  <!-- Meta tags básicas -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detector de Polichinelos</title>
+  
+  <!-- Estilos CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+  
+  <!-- Biblioteca de ícones Lucide -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
+  <!-- Container principal da página -->
   <div class="container">
+    
+    <!-- Seção hero com título e descrição -->
     <div class="hero">
       <h1>Detector de Polichinelos</h1>
       <p>Escolha como deseja contar seus exercícios!</p>
     </div>
 
+    <!-- Cards de seleção de modo -->
     <div class="mode-cards">
+      
+      <!-- Card para modo Webcam -->
       <form action="{{ url_for('contador') }}" method="POST">
         <div class="mode-card glass">
           <div class="mode-icon">
@@ -30,6 +41,7 @@
         </div>
       </form>
 
+      <!-- Card para modo Upload de Vídeo -->
       <form action="{{ url_for('contador_video') }}" method="GET">
         <div class="mode-card glass">
           <div class="mode-icon">
@@ -43,11 +55,13 @@
           </button>
         </div>
       </form>
+      
     </div>
   </div>
   
+  <!-- Scripts JavaScript -->
   <script>
-    // Inicializar ícones Lucide
+    // Inicializar ícones Lucide após carregamento da página
     lucide.createIcons();
   </script>
 </body>

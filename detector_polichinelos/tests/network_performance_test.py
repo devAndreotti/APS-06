@@ -14,30 +14,47 @@ Funcionalidades:
 - Análise de tráfego de rede e performance de carregamento
 """
 
+# =============================================================================
+# IMPORTAÇÕES E CONFIGURAÇÕES INICIAIS
+# =============================================================================
+
 import sys
 import os
-# Configurar encoding para Windows
+
+# Configuração de encoding para Windows (correção de caracteres especiais)
 if os.name == 'nt':
     import codecs
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
 
+# Bibliotecas padrão do Python
 import asyncio
 import json
-import os
 import time
 import threading
 from datetime import datetime
 from typing import Dict, List, Any
-import psutil
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from playwright.async_api import async_playwright, Page, Browser
-from dataclasses import dataclass, asdict
 
+# Bibliotecas de terceiros para monitoramento e análise
+import psutil  # Monitoramento de sistema (CPU, memória)
+import matplotlib.pyplot as plt  # Geração de gráficos
+import matplotlib.dates as mdates  # Formatação de datas nos gráficos
+from playwright.async_api import async_playwright, Page, Browser  # Automação de navegador
+from dataclasses import dataclass, asdict  # Estruturas de dados tipadas
+
+
+# =============================================================================
+# CLASSE DE CORES E FORMATAÇÃO PARA TERMINAL
+# =============================================================================
 
 class Colors:
-    """Cores para terminal"""
+    """
+    Classe para formatação e cores no terminal.
+    
+    Fornece métodos para aplicar cores ANSI, emojis com fallback para Windows,
+    e formatação de tabelas e cards no terminal.
+    """
+    # Códigos de cores ANSI
     RED = '\033[91m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
@@ -193,8 +210,17 @@ class Colors:
         print(f"└{separator_line}┘")
 
 
+# =============================================================================
+# FUNÇÕES DE VERIFICAÇÃO E VALIDAÇÃO
+# =============================================================================
+
 def check_dependencies():
-    """Verifica se as dependências estão instaladas"""
+    """
+    Verifica se todas as dependências necessárias estão instaladas.
+    
+    Returns:
+        bool: True se todas as dependências estão disponíveis, False caso contrário
+    """
     print(f"\n{Colors.info('Verificando dependências...')}")
     
     dependencies_ok = True
@@ -230,13 +256,29 @@ def check_dependencies():
 
 
 def check_playwright_browsers():
-    """Verifica se os navegadores do Playwright estão instalados"""
+    """
+    Verifica se os navegadores do Playwright estão instalados.
+    
+    Nota: Verificação simplificada pois o teste falharia automaticamente
+    se os navegadores não estivessem disponíveis.
+    
+    Returns:
+        bool: Sempre retorna True (verificação implícita durante execução)
+    """
     # Verificação removida - não é necessária pois o teste falharia se não funcionasse
     return True
 
 
 def check_flask_app():
-    """Verifica se a aplicação Flask está rodando"""
+    """
+    Verifica se a aplicação Flask está rodando e acessível.
+    
+    Faz uma requisição HTTP para localhost:5000 para confirmar
+    que o servidor está ativo e respondendo.
+    
+    Returns:
+        bool: True se Flask está rodando, False caso contrário
+    """
     print(f"\n{Colors.info('Verificando se a aplicação Flask está rodando...')}")
     
     try:
@@ -255,7 +297,15 @@ def check_flask_app():
 
 
 def ask_user_confirmation():
-    """Pede confirmação do usuário para continuar"""
+    """
+    Solicita confirmação do usuário antes de iniciar o teste.
+    
+    Informa sobre o que será executado e pede confirmação.
+    Em ambientes não interativos (CI/CD), continua automaticamente.
+    
+    Returns:
+        bool: True se usuário confirma ou em ambiente não interativo, False caso contrário
+    """
     print(f"\n{Colors.warning('ATENÇÃO:')}")
     print(f"  • O teste abrirá um navegador em tela cheia")
     print(f"  • Não feche o navegador durante a execução")
@@ -277,9 +327,18 @@ def ask_user_confirmation():
         return True
 
 
+# =============================================================================
+# CLASSES DE DADOS PARA MÉTRICAS
+# =============================================================================
+
 @dataclass
 class PageMetrics:
-    """Classe para armazenar métricas de uma página específica"""
+    """
+    Estrutura de dados para armazenar métricas de uma página específica.
+    
+    Contém informações sobre tempo de carregamento, uso de recursos,
+    tráfego de rede e requisições HTTP para uma única página.
+    """
     name: str
     load_time: float
     dom_load_time: float
@@ -293,15 +352,29 @@ class PageMetrics:
 
 @dataclass
 class SystemMetrics:
-    """Classe para armazenar métricas do sistema durante a execução"""
+    """
+    Estrutura de dados para métricas do sistema em um momento específico.
+    
+    Armazena informações sobre uso de CPU, memória e rede
+    coletadas durante o monitoramento contínuo do sistema.
+    """
     timestamp: float
     memory_mb: float
     cpu_percent: float
     network_data_kb: float
 
 
+# =============================================================================
+# CLASSE PRINCIPAL DE MONITORAMENTO DE PERFORMANCE
+# =============================================================================
+
 class PerformanceMonitor:
-    """Monitor de performance principal"""
+    """
+    Monitor principal de performance do sistema.
+    
+    Coordena a execução dos testes, coleta de métricas e geração de relatórios.
+    Utiliza Playwright para automação de navegador e psutil para monitoramento de sistema.
+    """
     
     def __init__(self, base_url: str = "http://localhost:5000"):
         self.base_url = base_url
@@ -327,7 +400,12 @@ class PerformanceMonitor:
         os.makedirs(self.reports_dir, exist_ok=True)
     
     def start_system_monitoring(self):
-        """Inicia o monitoramento contínuo do sistema"""
+        """
+        Inicia o monitoramento contínuo do sistema em thread separada.
+        
+        Coleta métricas de CPU e memória a cada 0.5 segundos
+        enquanto o teste está em execução.
+        """
         self.monitoring_active = True
         
         def monitor_loop():
@@ -362,13 +440,30 @@ class PerformanceMonitor:
         self.monitoring_thread.start()
     
     def stop_system_monitoring(self):
-        """Para o monitoramento do sistema"""
+        """
+        Para o monitoramento contínuo do sistema.
+        
+        Sinaliza para a thread de monitoramento parar e aguarda
+        sua finalização com timeout de 2 segundos.
+        """
         self.monitoring_active = False
         if self.monitoring_thread:
             self.monitoring_thread.join(timeout=2)
     
     async def collect_page_metrics(self, page: Page, page_name: str) -> PageMetrics:
-        """Coleta métricas específicas de uma página"""
+        """
+        Coleta métricas específicas de uma página web.
+        
+        Navega para a página, intercepta requisições HTTP, mede tempos
+        de carregamento e coleta dados de uso de recursos.
+        
+        Args:
+            page: Instância da página do Playwright
+            page_name: Nome/rota da página a ser testada
+            
+        Returns:
+            PageMetrics: Objeto contendo todas as métricas coletadas
+        """
         # Variáveis para coleta de dados de rede
         total_data_downloaded = 0
         http_requests_count = 0
@@ -457,7 +552,12 @@ class PerformanceMonitor:
         )
     
     async def run_performance_test(self):
-        """Executa o teste completo de performance"""
+        """
+        Executa o teste completo de performance.
+        
+        Navega por todas as páginas configuradas, coleta métricas
+        e coordena todo o processo de teste automatizado.
+        """
         Colors.print_header("TESTE DE PERFORMANCE DE REDE E MEMÓRIA")
         
         print(f"\n{Colors.info(f'URL base: {self.base_url}')}")
@@ -499,13 +599,26 @@ class PerformanceMonitor:
         print(f"\n{Colors.success(f'Teste concluído em {self.get_total_execution_time():.2f} segundos!')}")
     
     def get_total_execution_time(self) -> float:
-        """Retorna o tempo total de execução"""
+        """
+        Calcula o tempo total de execução do teste.
+        
+        Returns:
+            float: Tempo total em segundos
+        """
         if self.start_time and self.end_time:
             return self.end_time - self.start_time
         return 0.0
     
     def generate_summary_stats(self) -> Dict[str, Any]:
-        """Gera estatísticas resumidas do teste"""
+        """
+        Gera estatísticas resumidas de todo o teste.
+        
+        Calcula médias, máximos, mínimos e totais das métricas
+        coletadas durante a execução.
+        
+        Returns:
+            Dict[str, Any]: Dicionário com estatísticas consolidadas
+        """
         if not self.page_metrics:
             return {}
         
@@ -537,7 +650,12 @@ class PerformanceMonitor:
         }
     
     def print_terminal_report(self):
-        """Exibe relatório formatado no terminal"""
+        """
+        Exibe relatório formatado no terminal.
+        
+        Cria uma apresentação visual das métricas coletadas
+        usando tabelas, cards e formatação colorida.
+        """
         Colors.print_header("RELATÓRIO DE PERFORMANCE - ANÁLISE DE REDE E MEMÓRIA")
         
         stats = self.generate_summary_stats()
@@ -583,7 +701,12 @@ class PerformanceMonitor:
         Colors.print_header("FIM DO RELATÓRIO")
     
     def save_json_report(self):
-        """Salva relatório em formato JSON"""
+        """
+        Salva relatório completo em formato JSON.
+        
+        Exporta todas as métricas coletadas em formato estruturado
+        para análise posterior ou integração com outras ferramentas.
+        """
         report_data = {
             'test_info': {
                 'timestamp': datetime.now().isoformat(),
@@ -603,7 +726,13 @@ class PerformanceMonitor:
         print(f"\n✅ {Colors.success(f'Relatório JSON salvo em: {json_path}')}")
     
     def create_performance_chart(self):
-        """Cria gráfico de performance em PNG"""
+        """
+        Cria gráficos de performance em formato PNG.
+        
+        Gera visualizações dos dados coletados usando matplotlib,
+        incluindo gráficos de linha para métricas temporais e
+        gráficos de barras para comparações entre páginas.
+        """
         if not self.system_metrics:
             print(Colors.warning("[AVISO] Nenhuma metrica de sistema disponivel para grafico"))
             return
@@ -677,7 +806,13 @@ class PerformanceMonitor:
         print(f"\n📊 {Colors.success(f'Relatório gráfico salvo em: {chart_path}')}")
     
     def generate_html_report(self):
-        """Gera relatório HTML interativo"""
+        """
+        Gera relatório HTML interativo completo.
+        
+        Cria uma página web com visualizações interativas,
+        tabelas ordenáveis e funcionalidades de exportação.
+        Inclui CSS responsivo e JavaScript para interatividade.
+        """
         stats = self.generate_summary_stats()
         
         # Preparar dados para tabela
@@ -1270,8 +1405,17 @@ class PerformanceMonitor:
         print(f"\n✅ {Colors.success(f'Relatório HTML gerado: {html_path}')}")
 
 
+# =============================================================================
+# FUNÇÃO PRINCIPAL E EXECUÇÃO DO SCRIPT
+# =============================================================================
+
 async def main():
-    """Função principal para executar o teste de performance"""
+    """
+    Função principal para executar o teste de performance.
+    
+    Coordena todas as verificações prévias, execução do teste
+    e geração de relatórios. Trata erros e fornece feedback ao usuário.
+    """
     Colors.print_header("TESTE DE PERFORMANCE - DETECTOR DE POLICHINELOS")
     
     print(f"{Colors.info('Este script executará uma análise completa de performance da aplicação web,')}")

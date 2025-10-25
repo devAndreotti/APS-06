@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+  <!-- Meta tags básicas -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detector de Polichinelos - Upload de Vídeo</title>
+  
+  <!-- Estilos CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='contador_video.css') }}">
+  
+  <!-- Biblioteca de ícones Lucide -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body class="contador-video-body">
+  
+  <!-- Container principal da página -->
   <div class="contador-video-container">
-    <!-- Header -->
+    
+    <!-- Header da página -->
     <header class="video-header">
       <div class="header-content">
         <h1>Detector de Polichinelos</h1>
@@ -23,8 +31,10 @@
     </header>
 
     {% if not video_path %}
-    <!-- Upload Section -->
+    <!-- Seção de Upload (quando não há vídeo carregado) -->
     <main class="upload-section">
+      
+      <!-- Card principal de upload -->
       <div class="upload-card glass">
         <div class="upload-content">
           <div class="upload-icon">
@@ -33,6 +43,7 @@
           <h2>Selecione seu vídeo MP4</h2>
           <p class="upload-description">Faça upload de um vídeo para análise automática de polichinelos</p>
           
+          <!-- Formulário de upload -->
           <form action="{{ url_for('upload_video') }}" method="POST" enctype="multipart/form-data" class="upload-form">
             <div class="file-input-container">
               <input type="file" name="video" accept="video/mp4" required id="videoInput">
@@ -50,7 +61,7 @@
         </div>
       </div>
 
-      <!-- Instructions -->
+      <!-- Card de instruções para upload -->
       <div class="instructions-card glass">
         <h3>
           <i data-lucide="info" class="lucide-icon"></i>
@@ -64,11 +75,13 @@
           <li><strong>Câmera:</strong> Evite movimentos bruscos</li>
         </ul>
       </div>
+      
     </main>
     {% else %}
-    <!-- Video Processing Section -->
+    <!-- Seção de Processamento (quando há vídeo carregado) -->
     <main class="processing-section">
-      <!-- Status Header -->
+      
+      <!-- Header de status do processamento -->
       <div class="status-header glass">
         <div class="status-content">
           <div class="status-icon">
@@ -85,9 +98,10 @@
         </div>
       </div>
 
-      <!-- Main Content Grid -->
+      <!-- Grid principal de conteúdo -->
       <div class="main-content-grid">
-        <!-- Video Player -->
+        
+        <!-- Seção do player de vídeo -->
         <div class="video-section">
           <div class="video-container">
             <div class="video-wrapper">
@@ -111,8 +125,10 @@
           </div>
         </div>
 
-        <!-- Stats Sidebar -->
+        <!-- Sidebar de estatísticas -->
         <aside class="stats-sidebar">
+          
+          <!-- Card de estatísticas em tempo real -->
           <div class="stats-card glass">
             <div class="stats-header">
               <h3>
@@ -121,7 +137,10 @@
               </h3>
             </div>
             
+            <!-- Grid de estatísticas -->
             <div class="stats-grid">
+              
+              <!-- Contador de polichinelos -->
               <div class="stat-item primary">
                 <div class="stat-icon">
                   <i data-lucide="activity" class="lucide-icon"></i>
@@ -132,6 +151,7 @@
                 </div>
               </div>
               
+              <!-- Estado atual do processamento -->
               <div class="stat-item">
                 <div class="stat-icon">
                   <i data-lucide="bar-chart-3" class="lucide-icon"></i>
@@ -142,6 +162,7 @@
                 </div>
               </div>
               
+              <!-- FPS do processamento -->
               <div class="stat-item">
                 <div class="stat-icon">
                   <i data-lucide="zap" class="lucide-icon"></i>
@@ -152,6 +173,7 @@
                 </div>
               </div>
               
+              <!-- Duração do vídeo -->
               <div class="stat-item">
                 <div class="stat-icon">
                   <i data-lucide="clock" class="lucide-icon"></i>
@@ -161,10 +183,11 @@
                   <div class="stat-label">Duração</div>
                 </div>
               </div>
+              
             </div>
           </div>
 
-          <!-- New Upload Section -->
+          <!-- Card para novo upload -->
           <div class="new-upload-card glass">
             <h4>
               <i data-lucide="upload" class="lucide-icon"></i>
@@ -179,18 +202,21 @@
               <div class="file-name" id="newFileName"></div>
             </div>
           </div>
+          
         </aside>
       </div>
+      
     </main>
     {% endif %}
   </div>
 
+  <!-- Scripts JavaScript -->
   <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script>
-    // Inicializar ícones Lucide
+    // Inicializar ícones Lucide após carregamento da página
     lucide.createIcons();
     
-    // Gerenciar input de arquivo original
+    // Gerenciar input de arquivo original (seção de upload)
     const videoInput = document.getElementById('videoInput');
     const fileName = document.getElementById('fileName');
     const fileLabel = document.querySelector('.file-input-label');
@@ -215,7 +241,7 @@
       });
     }
     
-    // Gerenciar novo input de arquivo
+    // Gerenciar novo input de arquivo (sidebar durante processamento)
     const newVideoInput = document.getElementById('newVideoInput');
     const newFileName = document.getElementById('newFileName');
     const newFileLabel = document.querySelector('#newVideoInput + .file-input-label');
@@ -231,7 +257,7 @@
           newFileLabel.style.borderColor = 'var(--color-accent)';
           newFileLabel.style.borderStyle = 'solid';
           
-          // Fazer upload automático
+          // Fazer upload automático do novo arquivo
           const formData = new FormData();
           formData.append('video', file);
           
@@ -239,6 +265,7 @@
           newFileText.textContent = 'Enviando...';
           newFileLabel.style.opacity = '0.7';
           
+          // Enviar arquivo via fetch
           fetch('/upload_video', {
             method: 'POST',
             body: formData,

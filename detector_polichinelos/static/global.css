@@ -9,9 +9,6 @@
   text-decoration: none;
 }
 
-/* Import Lucide Icons */
-@import url('https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.css');
-
 /* ============================================================================
    VARIÁVEIS CSS (APENAS CORES E VALORES FUNDAMENTAIS)
    ============================================================================ */
@@ -203,7 +200,7 @@ body {
 .mb-4 { margin-bottom: var(--space-md); }
 .mt-4 { margin-top: var(--space-md); }
 
-/* Estilos para ícones Lucide */
+/* Estilos para ícones Lucide (SVG inline) */
 .lucide-icon-black {
   width: 1em;
   height: 1em;
@@ -222,6 +219,69 @@ body {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* Estilos para imagens SVG que substituem ícones Lucide */
+.lucide-icon,
+img.lucide-icon {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Aplicar filtro branco para SVGs em contexto escuro */
+img.lucide-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* Ícones em círculo branco (modo-ícone) devem ser pretos */
+.mode-icon img.lucide-icon {
+  filter: brightness(0);
+}
+
+/* Estilos específicos para ícones dentro dos círculos dos cards */
+.mode-icon .lucide-icon,
+.mode-icon img.lucide-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Ícones em botões */
+.btn .lucide-icon,
+.btn img.lucide-icon {
+  width: 16px;
+  height: 16px;
+  transition: var(--transition-fast);
+}
+
+/* Ícones em cards de dados */
+.data-icon .lucide-icon,
+.data-icon img.lucide-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Ícones em botões flutuantes */
+.floating-btn .lucide-icon,
+.floating-btn img.lucide-icon {
+  width: 16px;
+  height: 16px;
+  transition: var(--transition-fast);
+}
+
+/* Hover effects para ícones SVG */
+.btn-mode:hover img.lucide-icon {
+  transform: scale(1.1);
+}
+
+.btn-back:hover img.lucide-icon {
+  transform: translateX(-2px);
+}
+
+.mode-card:hover .btn img.lucide-icon {
+  filter: brightness(0);
 }
 
 /* Efeitos de brilho para cards */
@@ -279,12 +339,6 @@ body {
 }
 
 /* Estilos específicos para ícones dentro dos círculos dos cards */
-.mode-icon .lucide-icon {
-  stroke: #000000;
-  width: 24px;
-  height: 24px;
-}
-
 .mode-icon {
   width: 60px;
   height: 60px;
@@ -295,6 +349,12 @@ body {
   justify-content: center;
   margin: 0 auto var(--space-md);
   transition: all 0.3s ease;
+}
+
+.mode-icon .lucide-icon,
+.mode-icon img.lucide-icon {
+  width: 24px;
+  height: 24px;
 }
 
 /* ============================================================================

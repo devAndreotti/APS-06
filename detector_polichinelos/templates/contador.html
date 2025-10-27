@@ -9,9 +9,6 @@
   <!-- Estilos CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='contador.css') }}">
-  
-  <!-- Biblioteca de ícones Lucide -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body class="fullscreen">
   
@@ -41,7 +38,7 @@
         <!-- Contador de polichinelos -->
         <div class="data-item">
           <div class="data-icon">
-            <i data-lucide="activity" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/activity.svg') }}" alt="Activity" class="lucide-icon">
           </div>
           <div class="data-content">
             <div class="data-value" id="totalJumps">0</div>
@@ -52,7 +49,7 @@
         <!-- Estado atual do sistema -->
         <div class="data-item">
           <div class="data-icon">
-            <i data-lucide="bar-chart-3" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/bar-chart-3.svg') }}" alt="Bar Chart" class="lucide-icon">
           </div>
           <div class="data-content">
             <div class="data-value" id="currentStage">Preparando</div>
@@ -63,7 +60,7 @@
         <!-- FPS do sistema -->
         <div class="data-item">
           <div class="data-icon">
-            <i data-lucide="zap" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/zap.svg') }}" alt="Zap" class="lucide-icon">
           </div>
           <div class="data-content">
             <div class="data-value" id="fps">0</div>
@@ -74,7 +71,7 @@
         <!-- Timer de exercício -->
         <div class="data-item">
           <div class="data-icon">
-            <i data-lucide="clock" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/clock.svg') }}" alt="Clock" class="lucide-icon">
           </div>
           <div class="data-content">
             <div class="data-value" id="timer">0:00</div>
@@ -90,7 +87,7 @@
       
       <!-- Botão voltar para página inicial -->
       <a href="/" class="floating-btn">
-        <i data-lucide="arrow-left" class="lucide-icon"></i>
+        <img src="{{ url_for('static', filename='images/icons/arrow-left.svg') }}" alt="Back" class="lucide-icon">
         Voltar
       </a>
       
@@ -98,7 +95,7 @@
       <form action="{{ url_for('toggle_mode') }}" method="POST" style="display: inline;">
         <input type="hidden" name="current_mode" value="1">
         <button type="submit" class="floating-btn btn-mode">
-          <i data-lucide="users" class="lucide-icon"></i>
+          <img src="{{ url_for('static', filename='images/icons/users.svg') }}" alt="Users" class="lucide-icon">
           2 Pessoas
         </button>
       </form>
@@ -121,9 +118,5 @@
 
   <!-- Scripts JavaScript -->
   <script src="{{ url_for('static', filename='script.js') }}"></script>
-  <script>
-    // Inicializar ícones Lucide após carregamento da página
-    lucide.createIcons();
-  </script>
 </body>
 </html>

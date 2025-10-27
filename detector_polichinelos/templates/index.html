@@ -10,8 +10,6 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
   
-  <!-- Biblioteca de ícones Lucide -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
   <!-- Container principal da página -->
@@ -30,12 +28,12 @@
       <form action="{{ url_for('contador') }}" method="POST">
         <div class="mode-card glass">
           <div class="mode-icon">
-            <i data-lucide="video" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/video.svg') }}" alt="Video" class="lucide-icon">
           </div>
           <h3>Webcam</h3>
           <p>Contagem em tempo real usando sua câmera</p>
           <button type="submit" name="modo" value="webcam" class="btn btn-primary">
-            <i data-lucide="play" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/play.svg') }}" alt="Play" class="lucide-icon">
             Iniciar Webcam
           </button>
         </div>
@@ -45,12 +43,12 @@
       <form action="{{ url_for('contador_video') }}" method="GET">
         <div class="mode-card glass">
           <div class="mode-icon">
-            <i data-lucide="upload" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/upload.svg') }}" alt="Upload" class="lucide-icon">
           </div>
           <h3>Upload de Vídeo</h3>
           <p>Envie um arquivo MP4 para ser analisado</p>
           <button type="submit" class="btn btn-primary">
-            <i data-lucide="file-video" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/file-video.svg') }}" alt="File Video" class="lucide-icon">
             Enviar Vídeo
           </button>
         </div>
@@ -58,11 +56,5 @@
       
     </div>
   </div>
-  
-  <!-- Scripts JavaScript -->
-  <script>
-    // Inicializar ícones Lucide após carregamento da página
-    lucide.createIcons();
-  </script>
 </body>
 </html>

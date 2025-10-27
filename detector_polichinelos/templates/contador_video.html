@@ -9,9 +9,6 @@
   <!-- Estilos CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='contador_video.css') }}">
-  
-  <!-- Biblioteca de ícones Lucide -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body class="contador-video-body">
   
@@ -25,7 +22,7 @@
         <p class="header-subtitle">Análise de Vídeo</p>
       </div>
       <a href="/" class="btn btn-back">
-        <i data-lucide="arrow-left" class="lucide-icon"></i>
+        <img src="{{ url_for('static', filename='images/icons/arrow-left.svg') }}" alt="Back" class="lucide-icon">
         Voltar
       </a>
     </header>
@@ -38,7 +35,7 @@
       <div class="upload-card glass">
         <div class="upload-content">
           <div class="upload-icon">
-            <i data-lucide="video" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/video.svg') }}" alt="Video" class="lucide-icon">
           </div>
           <h2>Selecione seu vídeo MP4</h2>
           <p class="upload-description">Faça upload de um vídeo para análise automática de polichinelos</p>
@@ -48,13 +45,13 @@
             <div class="file-input-container">
               <input type="file" name="video" accept="video/mp4" required id="videoInput">
               <label for="videoInput" class="file-input-label">
-                <i data-lucide="upload" class="file-input-icon"></i>
+                <img src="{{ url_for('static', filename='images/icons/upload.svg') }}" alt="Upload" class="file-input-icon">
                 <span class="file-input-text">Clique para selecionar um vídeo</span>
               </label>
               <div class="file-name" id="fileName"></div>
             </div>
             <button type="submit" class="btn btn-primary btn-large">
-              <i data-lucide="play" class="lucide-icon"></i>
+              <img src="{{ url_for('static', filename='images/icons/play.svg') }}" alt="Play" class="lucide-icon">
               Processar Vídeo
             </button>
           </form>
@@ -64,7 +61,7 @@
       <!-- Card de instruções para upload -->
       <div class="instructions-card glass">
         <h3>
-          <i data-lucide="info" class="lucide-icon"></i>
+          <img src="{{ url_for('static', filename='images/icons/info.svg') }}" alt="Info" class="lucide-icon">
           Instruções para o vídeo
         </h3>
         <ul class="instructions-list">
@@ -85,7 +82,7 @@
       <div class="status-header glass">
         <div class="status-content">
           <div class="status-icon">
-            <i data-lucide="play-circle" class="lucide-icon"></i>
+            <img src="{{ url_for('static', filename='images/icons/play-circle.svg') }}" alt="Play Circle" class="lucide-icon">
           </div>
           <div class="status-text">
             <h2>Processando Vídeo</h2>
@@ -111,7 +108,7 @@
               <div class="video-overlay">
                 <div class="video-controls">
                   <button class="control-btn" id="playPauseBtn">
-                    <i data-lucide="play" class="lucide-icon"></i>
+                    <img src="{{ url_for('static', filename='images/icons/play.svg') }}" alt="Play" class="lucide-icon">
                   </button>
                   <div class="video-progress">
                     <div class="progress-bar">
@@ -132,7 +129,7 @@
           <div class="stats-card glass">
             <div class="stats-header">
               <h3>
-                <i data-lucide="activity" class="lucide-icon"></i>
+                <img src="{{ url_for('static', filename='images/icons/activity.svg') }}" alt="Activity" class="lucide-icon">
                 Dados em Tempo Real
               </h3>
             </div>
@@ -143,7 +140,7 @@
               <!-- Contador de polichinelos -->
               <div class="stat-item primary">
                 <div class="stat-icon">
-                  <i data-lucide="activity" class="lucide-icon"></i>
+                  <img src="{{ url_for('static', filename='images/icons/activity.svg') }}" alt="Activity" class="lucide-icon">
                 </div>
                 <div class="stat-content">
                   <div class="stat-value" id="totalJumps">0</div>
@@ -154,7 +151,7 @@
               <!-- Estado atual do processamento -->
               <div class="stat-item">
                 <div class="stat-icon">
-                  <i data-lucide="bar-chart-3" class="lucide-icon"></i>
+                  <img src="{{ url_for('static', filename='images/icons/bar-chart-3.svg') }}" alt="Bar Chart" class="lucide-icon">
                 </div>
                 <div class="stat-content">
                   <div class="stat-value" id="currentStage">Preparando</div>
@@ -165,7 +162,7 @@
               <!-- FPS do processamento -->
               <div class="stat-item">
                 <div class="stat-icon">
-                  <i data-lucide="zap" class="lucide-icon"></i>
+                  <img src="{{ url_for('static', filename='images/icons/zap.svg') }}" alt="Zap" class="lucide-icon">
                 </div>
                 <div class="stat-content">
                   <div class="stat-value" id="fps">0</div>
@@ -176,7 +173,7 @@
               <!-- Duração do vídeo -->
               <div class="stat-item">
                 <div class="stat-icon">
-                  <i data-lucide="clock" class="lucide-icon"></i>
+                  <img src="{{ url_for('static', filename='images/icons/clock.svg') }}" alt="Clock" class="lucide-icon">
                 </div>
                 <div class="stat-content">
                   <div class="stat-value" id="videoDuration">0:00</div>
@@ -190,13 +187,13 @@
           <!-- Card para novo upload -->
           <div class="new-upload-card glass">
             <h4>
-              <i data-lucide="upload" class="lucide-icon"></i>
+              <img src="{{ url_for('static', filename='images/icons/upload.svg') }}" alt="Upload" class="lucide-icon">
               Novo Upload
             </h4>
             <div class="file-input-container">
               <input type="file" name="video" accept="video/mp4" required id="newVideoInput">
               <label for="newVideoInput" class="file-input-label">
-                <i data-lucide="video" class="file-input-icon"></i>
+                <img src="{{ url_for('static', filename='images/icons/video.svg') }}" alt="Video" class="file-input-icon">
                 <span class="file-input-text">Escolher Arquivo</span>
               </label>
               <div class="file-name" id="newFileName"></div>
@@ -213,8 +210,6 @@
   <!-- Scripts JavaScript -->
   <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script>
-    // Inicializar ícones Lucide após carregamento da página
-    lucide.createIcons();
     
     // Gerenciar input de arquivo original (seção de upload)
     const videoInput = document.getElementById('videoInput');

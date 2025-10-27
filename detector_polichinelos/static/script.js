@@ -1,35 +1,12 @@
 // ============================================================================
 // VARIÁVEIS GLOBAIS
 // ============================================================================
+
 let startTime = Date.now();
 
 // ============================================================================
 // UTILITÁRIOS
 // ============================================================================
-
-/**
- * Exibe notificação na tela
- * @param {string} message - Mensagem a ser exibida
- * @param {string} type - Tipo: 'success', 'error', 'info'
- */
-const showNotification = (message, type = 'info') => {
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  notification.textContent = message;
-  notification.style.cssText = `
-    position: fixed; top: 20px; right: 20px; padding: 12px 20px;
-    background: ${type === 'success' ? '#4ade80' : type === 'error' ? '#ef4444' : '#3b82f6'};
-    color: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    z-index: 1000; transform: translateX(100%); transition: transform 0.3s ease;
-  `;
-  
-  document.body.appendChild(notification);
-  setTimeout(() => notification.style.transform = 'translateX(0)', 100);
-  setTimeout(() => {
-    notification.style.transform = 'translateX(100%)';
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-};
 
 /**
  * Atualiza elemento HTML por ID
@@ -47,29 +24,13 @@ const updateElement = (id, value) => {
 // UPLOAD DE VÍDEO
 // ============================================================================
 
-/**
- * Inicializa o sistema de upload
- */
 const initUpload = () => {
-  // Apenas habilita o botão de upload se existir
+  // Habilita o botão de upload se existir
   const uploadBtn = document.getElementById('uploadBtn');
   if (uploadBtn) {
     uploadBtn.disabled = false;
   }
 };
-
-// ============================================================================
-// CALIBRAÇÃO
-// ============================================================================
-
-/**
- * Envia requisição de calibração para o backend
-const calibrar = () => {
-  fetch("/calibrar", { method: "POST" })
-    .then(() => {})
-    .catch(() => {});
-};
-*/
 
 // ============================================================================
 // DADOS EM TEMPO REAL
@@ -96,7 +57,6 @@ const fetchData = async () => {
   }
 };
 
-
 /**
  * Atualiza status de conexão na interface
  * @param {boolean} connected - Status de conexão
@@ -110,7 +70,6 @@ const updateConnectionStatus = (connected) => {
     statusText.textContent = connected ? 'Conectado' : 'Desconectado';
   }
 };
-
 
 // ============================================================================
 // TIMERS
@@ -221,4 +180,3 @@ document.addEventListener('DOMContentLoaded', initPage);
 // EXPOSIÇÃO GLOBAL
 // ============================================================================
 // Expor funções que são chamadas diretamente do HTML
-window.showNotification = showNotification;

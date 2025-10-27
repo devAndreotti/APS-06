@@ -1,28 +1,72 @@
-# Ignorar a pasta do ambiente virtual do Python
-venv/
-
-# Ignorar pastas de cache do Python
+# ============================================================================
+# CACHE DIRECTORIES (Sempre pode apagar)
+# ============================================================================
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg-info/
+dist/
+build/
+.pytest_cache/
 
-# Ignorar arquivos de configuração de editores de código
-.vscode/
-.idea/
+# ============================================================================
+# VIRTUAL ENVIRONMENT (Pode apagar e recriar)
+# ============================================================================
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 
-# Ignorar apenas arquivos de vídeo (mantém a pasta uploads/)
+# ============================================================================
+# UPLOADS - Vídeos enviados pelos usuários (NÃO comitar!)
+# ============================================================================
 uploads/*.mp4
 uploads/*.avi
 uploads/*.mov
 uploads/*.mkv
-uploads/*.wmv
-uploads/*.flv
 uploads/*.webm
-*.mp4
-*.avi
-*.mov
-*.mkv
-*.wmv
-*.flv
-*.webm
+uploads/*
+!uploads/.gitkeep
 
-# Ignorar relatórios de teste de performance gerados automaticamente
-tests/reports/
+# ============================================================================
+# IDEs AND EDITORS
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ============================================================================
+# OS FILES
+# ============================================================================
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ============================================================================
+# TEST REPORTS (Pode limpar)
+# ============================================================================
+tests/reports/*.html
+tests/reports/*.json
+tests/reports/*.png
+tests/reports/*
+!tests/reports/.gitkeep
+
+# ============================================================================
+# LOGS
+# ============================================================================
+*.log
+logs/
+
+# ============================================================================
+# TEMPORARY FILES
+# ============================================================================
+*.tmp
+*.temp
+.cache/

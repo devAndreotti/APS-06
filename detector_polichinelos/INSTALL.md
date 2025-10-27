@@ -34,20 +34,6 @@ python app.py
 3. Execute `python app.py`
 4. Abra http://localhost:5000 no navegador
 
-## 📁 Estrutura do Projeto
-
-```
-detector_polichinelos/
-├── app.py                 # Aplicação principal Flask
-├── contador.py            # Detecção para 1 pessoa
-├── contador_multi.py      # Detecção para 2 pessoas
-├── requirements.txt       # Dependências do projeto
-├── install.py             # Script de instalação completo
-├── templates/             # Templates HTML
-├── static/                # CSS, JS e imagens
-└── uploads/               # Vídeos enviados (vazio por padrão)
-```
-
 ## 🔧 Dependências Principais
 
 - **Flask**: Framework web

@@ -44,18 +44,7 @@
   font-size: 1rem;
 }
 
-.btn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: 12px 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  color: var(--color-text);
-  font-weight: 500;
-  transition: var(--transition);
-}
+
 
 .btn-back:hover {
   background: var(--color-surface-hover);
@@ -718,9 +707,16 @@ input[type="file"] {
   color: var(--color-accent);
 }
 
-/* ============================================================================
-   RESPONSIVIDADE
-   ============================================================================ */
+
+
+
+
+
+
+
+
+
+
 
 /* ============================================================================
    RESPONSIVIDADE
@@ -862,4 +858,4 @@ input[type="file"] {
   }
 }
 
-/* Animações são definidas no arquivo global */
+/* Animações definidas no arquivo global */

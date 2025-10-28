@@ -64,6 +64,15 @@
   --transition-fast: all 0.2s ease;
 }
 
+
+
+
+
+
+
+
+
+
 /* ============================================================================
    ELEMENTOS BASE
    ============================================================================ */
@@ -80,7 +89,7 @@ body {
    COMPONENTES REUTILIZÁVEIS
    ============================================================================ */
 
-/* Glassmorfismo base */
+/* Glassmorfismo base de tudo (menos do index) */
 .glass {
   background: var(--color-surface);
   backdrop-filter: blur(20px);
@@ -109,7 +118,7 @@ body {
   opacity: 1;
 }
 
-/* Botões base */
+/* Botões */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -126,6 +135,7 @@ body {
   overflow: hidden;
 }
 
+ /* Efeito de brilho em botões */
 .btn::before {
   content: '';
   position: absolute;
@@ -148,10 +158,7 @@ body {
   left: 100%;
 }
 
-.btn:active {
-  transform: scale(0.95);
-}
-
+/* Cor botão index e vontador vídeo */
 .btn-primary {
   background: var(--color-accent-gradient);
   border-color: var(--color-accent);
@@ -161,21 +168,14 @@ body {
   transform: scale(0.95);
 }
 
-/* Layout base */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-/* Container específico para contador de vídeo */
+/* Container específico para contador de vídeo - SEM USO
 .contador-video-container {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
 }
 
-/* Layout específico para contador de vídeo */
+Layout específico para contador de vídeo
 .contador-video-body {
   min-height: 100vh;
   display: flex;
@@ -183,53 +183,12 @@ body {
   justify-content: center;
   padding: var(--space-md);
 }
+*/
 
-.grid {
-  display: grid;
-  gap: 20px;
-}
 
-.flex {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
 
-/* Utilitários de texto */
-.text-center { text-align: center; }
-.mb-4 { margin-bottom: var(--space-md); }
-.mt-4 { margin-top: var(--space-md); }
 
-/* Estilos para ícones Lucide (SVG inline) */
-.lucide-icon-black {
-  width: 1em;
-  height: 1em;
-  stroke: #000000;
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 
-.lucide-icon-white {
-  width: 1em;
-  height: 1em;
-  stroke: #ffffff;
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Estilos para imagens SVG que substituem ícones Lucide */
-.lucide-icon,
-img.lucide-icon {
-  width: 1em;
-  height: 1em;
-  display: inline-block;
-  vertical-align: middle;
-  flex-shrink: 0;
-}
 
 /* Aplicar filtro branco para SVGs em contexto escuro */
 img.lucide-icon {
@@ -248,6 +207,13 @@ img.lucide-icon {
   height: 24px;
 }
 
+
+
+
+
+
+
+
 /* Ícones em botões */
 .btn .lucide-icon,
 .btn img.lucide-icon {
@@ -263,6 +229,13 @@ img.lucide-icon {
   height: 18px;
 }
 
+
+
+
+
+
+
+
 /* Ícones em botões flutuantes */
 .floating-btn .lucide-icon,
 .floating-btn img.lucide-icon {
@@ -272,60 +245,15 @@ img.lucide-icon {
 }
 
 /* Hover effects para ícones SVG */
-.btn-mode:hover img.lucide-icon {
+.floating-btn:hover img.lucide-icon {
   transform: scale(1.1);
-}
-
-.btn-back:hover img.lucide-icon {
-  transform: translateX(-2px);
 }
 
 .mode-card:hover .btn img.lucide-icon {
   filter: brightness(0);
 }
 
-/* Efeitos de brilho para cards */
-.mode-card {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
 
-.mode-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 250%;
-  background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  opacity: 0;
-  transition: opacity 0.6s ease;
-  animation: rotate 4s linear infinite;
-}
-
-.mode-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.mode-card:hover::before {
-  opacity: 1;
-}
-
-.mode-card:hover .mode-icon {
-  transform: scale(1.1);
-}
-
-.mode-card:hover h3 {
-  color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-.mode-card:hover p {
-  color: #e0e0e0;
-}
 
 .mode-card:hover .btn {
   background: linear-gradient(135deg, #ffffff, #f0f0f0);
@@ -334,9 +262,18 @@ img.lucide-icon {
   transform: translateY(-2px);
 }
 
+.mode-card:hover .btn:active {
+  transform: scale(0.95) translateY(-2px);
+}
+
 .mode-card:hover .btn .lucide-icon {
   stroke: #000000;
 }
+
+
+
+
+
 
 /* Estilos específicos para ícones dentro dos círculos dos cards */
 .mode-icon {
@@ -357,78 +294,14 @@ img.lucide-icon {
   height: 24px;
 }
 
+
+
+
+
 /* ============================================================================
    COMPONENTES DE DADOS
    ============================================================================ */
 
-/* Card principal de dados */
-.main-data-card {
-  padding: var(--space-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  position: relative;
-  overflow: hidden;
-}
-
-.main-data-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.main-data-card:hover::before {
-  opacity: 1;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: var(--space-md);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.card-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-/* Grid de dados */
-.data-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-md);
-}
-
-.data-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: var(--space-md);
-  background: var(--color-bg-card);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  transition: var(--transition);
-}
-
-.data-item:hover {
-  background: var(--color-bg-card-hover);
-  border-color: var(--color-border-accent);
-  transform: translateY(-2px);
-}
 
 .data-icon {
   width: 40px;
@@ -482,6 +355,15 @@ img.lucide-icon {
   font-weight: 500;
 }
 
+
+
+
+
+
+
+
+
+
 /* ============================================================================
    ANIMAÇÕES
    ============================================================================ */
@@ -500,6 +382,15 @@ img.lucide-icon {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.3; transform: scale(1.2); }
 }
+
+
+
+
+
+
+
+
+
 
 /* ============================================================================
    RESPONSIVIDADE

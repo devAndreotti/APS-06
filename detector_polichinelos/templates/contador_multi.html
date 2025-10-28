@@ -48,9 +48,9 @@
       </a>
       
       <!-- Botão para alternar modo (2 pessoas / 1 pessoa) -->
-      <form action="{{ url_for('toggle_mode') }}" method="POST" style="display: inline;">
+      <form action="{{ url_for('toggle_mode') }}" method="POST">
         <input type="hidden" name="current_mode" value="2">
-        <button type="submit" class="floating-btn btn-mode">
+        <button type="submit" class="floating-btn btn-back">
           <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
           1 Pessoa
         </button>

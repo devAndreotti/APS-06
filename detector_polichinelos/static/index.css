@@ -26,7 +26,49 @@
   margin-bottom: 40px;
 }
 
-/* Cards de modo - estende estilos globais */
+/* Efeitos de brilho para cards */
+.mode-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.mode-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 250%;
+  background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  animation: rotate 4s linear infinite;
+}
+
+.mode-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.mode-card:hover::before {
+  opacity: 1;
+}
+
+.mode-card:hover .mode-icon {
+  transform: scale(1.1);
+}
+
+.mode-card:hover h3 {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.mode-card:hover p {
+  color: #e0e0e0;
+}
+
 .mode-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -62,7 +104,16 @@
   margin-bottom: var(--space-lg);
 }
 
-/* Responsividade */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ============================================================================
+   RESPONSIVIDADE
+   ============================================================================ */
+
 @media (max-width: 768px) {
   .hero h1 { font-size: 2rem; }
   .mode-cards { grid-template-columns: 1fr; }

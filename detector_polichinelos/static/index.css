@@ -1,6 +1,13 @@
 /* ============================================================================
-   PÁGINA INICIAL - LAYOUT E COMPONENTES
+   LAYOUT E COMPONENTES - CERTO
    ============================================================================ */
+
+/* Container principal */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
 /* Hero section */
 .hero {
@@ -24,6 +31,15 @@
   color: var(--color-text-muted);
   font-size: 1.2rem;
   margin-bottom: 40px;
+}
+
+.mode-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+  margin: 40px 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* Efeitos de brilho para cards */
@@ -69,15 +85,6 @@
   color: #e0e0e0;
 }
 
-.mode-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-lg);
-  margin: 40px 0;
-  position: relative;
-  z-index: 1;
-}
-
 .mode-card {
   padding: var(--space-xl);
   text-align: center;
@@ -102,12 +109,6 @@
 .mode-card p {
   color: var(--color-text-muted);
   margin-bottom: var(--space-lg);
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
 }
 
 /* ============================================================================

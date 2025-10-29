@@ -6,37 +6,75 @@ Sistema automatizado de análise de performance para a aplicação web de detec�
 
 ### Pré-requisitos
 - Python 3.8+
-- Servidor Flask rodando na porta 5000
-- Navegador Chromium instalado
+- OpenCV, MediaPipe instalados
+- Servidor Flask rodando na porta 5000 (para testes de rede)
+- Navegador Chromium instalado (para testes de rede)
 
 ### Instalação das Dependências
 ```bash
 # Instalar bibliotecas necessárias
-pip install playwright psutil matplotlib
+pip install playwright psutil matplotlib opencv-python mediapipe
 
 # Instalar navegador Chromium
 python -m playwright install chromium
 ```
 
-### Execução
+### Execução dos Testes
+
+#### 1. Teste de Processamento de Vídeo (Backend)
+```bash
+cd tests
+python video_processing_test.py [caminho_do_video]
+# Exemplo: python video_processing_test.py ../uploads/WIN_20251021_17_26_30_Pro.mp4
+```
+
+#### 2. Teste de Rede e Memória (Frontend)
 ```bash
 # 1. Iniciar o servidor Flask (em outro terminal)
 python app.py
 
-# 2. Executar os testes de performance
+# 2. Executar os testes
 cd tests
 python network_performance_test.py
 ```
 
-## 📊 Funcionalidades do Teste
+## 📊 Funcionalidades dos Testes
 
-### Páginas Testadas
+### 1. Teste de Processamento de Vídeo (`video_processing_test.py`)
+
+Testa o **backend** de detecção de polichinelos:
+
+#### Testes Incluídos
+- ⏱️ **Performance de Frame** - Tempo de processamento por frame
+- 🧠 **Vazamento de Memória** - Monitoramento durante streaming prolongado (60s)
+- 👥 **Múltiplas Pessoas** - Comparação 1 pessoa vs 2 pessoas
+- ⚡ **Uso de CPU** - Durante processamento de vídeo
+- 🎯 **FPS Real** - Frames por segundo durante streaming
+
+#### Métricas Coletadas
+- **Tempo por Frame**: MediaPipe, encoding, captura
+- **FPS**: Frames por segundo (média e variação)
+- **Memória**: Uso durante processamento e crescimento
+- **CPU**: Percentual durante processamento
+- **Gargalos**: Identificação do componente mais lento
+
+#### Como Interpretar
+- **FPS > 25**: Performance excelente para tempo real
+- **MediaPipe > 80%**: MediaPipe é o gargalo principal
+- **Vazamento > 20MB**: Investigar cleanup de recursos
+- **Impacto 2-pessoas > 30%**: Considerar otimizações
+
+### 2. Teste de Rede e Memória (`network_performance_test.py`)
+
+Testa o **frontend** e carregamento de páginas:
+
+#### Páginas Testadas
 - **Página Inicial** (`/`) - Seleção de modo de operação
 - **Contador Individual** (`/contador`) - Detecção via webcam
 - **Contador Múltiplo** (`/contador_multi`) - Detecção de múltiplas pessoas
 - **Upload de Vídeo** (`/contador_video`) - Análise de arquivos MP4
 
-### Métricas Coletadas
+#### Métricas Coletadas
 - ⏱️ **Tempo de Carregamento** - Latência de cada página
 - 🧠 **Uso de Memória** - Consumo RAM (média, pico, mínimo)
 - ⚡ **Uso de CPU** - Percentual de processamento
@@ -49,6 +87,10 @@ python network_performance_test.py
 ### Localização
 Todos os relatórios são salvos na pasta `tests/reports/`:
 
+#### Testes de Vídeo
+- **`video_processing_report.json`** - Dados brutos de performance de vídeo
+
+#### Testes de Rede
 - **`network_memory_report.json`** - Dados brutos em formato JSON
 - **`network_memory_report.html`** - Relatório visual interativo
 - **`performance_chart.png`** - Gráfico de tendências de performance
@@ -98,9 +140,12 @@ python -m playwright install chromium
 
 ```
 tests/
-├── network_performance_test.py    # Script principal de testes
+├── video_processing_test.py       # Teste de performance de vídeo (backend)
+├── network_performance_test.py    # Teste de performance de rede (frontend)
+├── advanced_performance_test.py   # Testes avançados (acessibilidade, segurança)
 ├── USAGE.md                       # Este guia de uso
 └── reports/                       # Relatórios gerados automaticamente
+    ├── video_processing_report.json
     ├── network_memory_report.json
     ├── network_memory_report.html
     └── performance_chart.png
@@ -135,6 +180,37 @@ tests/
 - Otimizar recursos críticos
 - Balancear carga entre componentes
 
+## 🎬 Exemplo de Execução Completa
+
+### Passo a passo para testar tudo:
+
+```bash
+# 1. Testar backend de processamento de vídeo
+cd tests
+python video_processing_test.py ../uploads/WIN_20251021_17_26_30_Pro.mp4
+
+# 2. (Em outro terminal) Iniciar servidor Flask
+cd ..
+python app.py
+
+# 3. (Em outro terminal) Testar frontend
+cd tests
+python network_performance_test.py
+
+# 4. Ver relatórios
+ls -la reports/
+```
+
+## 🔍 Diferenças Entre os Testes
+
+| Aspecto | Teste de Vídeo | Teste de Rede |
+|---------|---------------|---------------|
+| **Foco** | Backend (MediaPipe, OpenCV) | Frontend (HTML, CSS, JS) |
+| **O que testa** | Processamento de frames | Carregamento de páginas |
+| **Precisa Flask?** | ❌ Não | ✅ Sim |
+| **Gargalos** | CPU, MediaPipe | Download, Renderização |
+| **Quando usar** | Otimizar detecção | Otimizar interface |
+
 ---
 
-**💡 Dica**: Execute os testes regularmente durante o desenvolvimento para manter a performance otimizada!
+**💡 Dica**: Execute ambos os testes para ter visão completa da performance do sistema!

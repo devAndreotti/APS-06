@@ -142,18 +142,48 @@ class Colors:
         return Colors.colored(text, Colors.BOLD)
     
     @staticmethod
+    def cyan(text: str) -> str:
+        """Texto em ciano"""
+        return Colors.colored(text, Colors.CYAN)
+    
+    @staticmethod
+    def green(text: str) -> str:
+        """Texto em verde"""
+        return Colors.colored(text, Colors.GREEN)
+    
+    @staticmethod
+    def yellow(text: str) -> str:
+        """Texto em amarelo"""
+        return Colors.colored(text, Colors.YELLOW)
+    
+    @staticmethod
+    def blue(text: str) -> str:
+        """Texto em azul"""
+        return Colors.colored(text, Colors.BLUE)
+    
+    @staticmethod
+    def red(text: str) -> str:
+        """Texto em vermelho"""
+        return Colors.colored(text, Colors.RED)
+    
+    @staticmethod
+    def magenta(text: str) -> str:
+        """Texto em magenta"""
+        return Colors.colored(text, Colors.MAGENTA)
+    
+    @staticmethod
     def print_header(title: str, width: int = 80):
         """Imprime cabeçalho formatado"""
-        print("\n" + "=" * width)
-        print(f" {title} ")
-        print("=" * width)
+        print("\n" + "=" * width, flush=True)
+        print(f" {title} ", flush=True)
+        print("=" * width, flush=True)
     
     @staticmethod
     def print_section(title: str, width: int = 80):
         """Imprime seção formatada"""
-        print("\n" + "─" * width)
-        print(f" {title} ")
-        print("─" * width + "\n")
+        print("\n" + "─" * width, flush=True)
+        print(f" {title} ", flush=True)
+        print("─" * width + "\n", flush=True)
     
     @staticmethod
     def print_subsection(title: str, width: int = 80):
@@ -221,7 +251,7 @@ def check_dependencies():
     Returns:
         bool: True se todas as dependências estão disponíveis, False caso contrário
     """
-    print(f"\n{Colors.info('Verificando dependências...')}")
+    print(f"{Colors.info('Verificando dependências...')}")
     
     dependencies_ok = True
     
@@ -344,10 +374,14 @@ class PageMetrics:
     dom_load_time: float
     total_data_downloaded: float  # em KB
     http_requests_count: int
-    avg_memory_mb: float
+    avg_memory_mb: float  # Memória do processo Python (teste)
     avg_cpu_percent: float
-    max_memory_mb: float
-    min_memory_mb: float
+    max_memory_mb: float  # Memória do processo Python (teste)
+    min_memory_mb: float  # Memória do processo Python (teste)
+    avg_flask_memory_mb: float = 0.0  # Memória média do processo Flask
+    max_flask_memory_mb: float = 0.0  # Memória máxima do processo Flask
+    browser_memory_mb: float = 0.0  # Memória do navegador (JavaScript heap)
+    avg_fps: float = 0.0  # Média de FPS (apenas para contador_video)
 
 
 @dataclass
@@ -359,9 +393,11 @@ class SystemMetrics:
     coletadas durante o monitoramento contínuo do sistema.
     """
     timestamp: float
-    memory_mb: float
+    memory_mb: float  # Memória do processo Python (teste)
     cpu_percent: float
     network_data_kb: float
+    flask_memory_mb: float = 0.0  # Memória do processo Flask (se encontrado)
+    browser_memory_mb: float = 0.0  # Memória do navegador (JavaScript heap)
 
 
 # =============================================================================
@@ -398,6 +434,49 @@ class PerformanceMonitor:
         # Configuração de diretórios
         self.reports_dir = os.path.join(os.path.dirname(__file__), "reports")
         os.makedirs(self.reports_dir, exist_ok=True)
+        
+        # Cache do processo Flask encontrado (evita buscar toda vez)
+        self.flask_process = None
+    
+    def find_flask_process(self):
+        """
+        Encontra o processo Flask rodando no sistema.
+        
+        Procura por processos Python que estejam executando app.py
+        ou Flask. Cria um cache para não buscar repetidamente.
+        
+        Returns:
+            psutil.Process ou None: Processo Flask encontrado ou None se não encontrar
+        """
+        # Se já encontramos o processo antes, verificar se ainda está ativo
+        if self.flask_process:
+            try:
+                # Testar se o processo ainda existe
+                self.flask_process.status()
+                return self.flask_process
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                # Processo não existe mais, limpar cache
+                self.flask_process = None
+        
+        # Procurar por processos Flask
+        try:
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    cmdline = proc.info.get('cmdline')
+                    if cmdline:
+                        cmdline_str = ' '.join(cmdline).lower()
+                        # Procurar por app.py ou flask
+                        if ('app.py' in cmdline_str or 'flask' in cmdline_str) and 'python' in cmdline_str:
+                            # Evitar pegar o próprio processo do teste
+                            if 'network_performance_test' not in cmdline_str:
+                                self.flask_process = proc
+                                return proc
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+        except Exception:
+            pass
+        
+        return None
     
     def start_system_monitoring(self):
         """
@@ -405,16 +484,28 @@ class PerformanceMonitor:
         
         Coleta métricas de CPU e memória a cada 0.5 segundos
         enquanto o teste está em execução.
+        Agora também monitora o processo Flask separadamente.
         """
         self.monitoring_active = True
         
         def monitor_loop():
             while self.monitoring_active:
                 try:
-                    # Obter métricas do processo Python atual
+                    # Obter métricas do processo Python atual (teste)
                     process = psutil.Process()
                     memory_info = process.memory_info()
                     memory_mb = memory_info.rss / 1024 / 1024  # Converter para MB
+                    
+                    # Tentar encontrar e monitorar processo Flask
+                    flask_memory_mb = 0.0
+                    flask_proc = self.find_flask_process()
+                    if flask_proc:
+                        try:
+                            flask_memory_info = flask_proc.memory_info()
+                            flask_memory_mb = flask_memory_info.rss / 1024 / 1024  # Converter para MB
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            # Processo Flask não acessível, limpar cache
+                            self.flask_process = None
                     
                     # Obter uso de CPU
                     cpu_percent = psutil.cpu_percent(interval=0.1)
@@ -424,7 +515,9 @@ class PerformanceMonitor:
                         timestamp=time.time(),
                         memory_mb=memory_mb,
                         cpu_percent=cpu_percent,
-                        network_data_kb=0  # Será atualizado durante navegação
+                        network_data_kb=0,  # Será atualizado durante navegação
+                        flask_memory_mb=flask_memory_mb,
+                        browser_memory_mb=0.0  # Será preenchido durante coleta de página
                     )
                     
                     self.system_metrics.append(metric)
@@ -467,6 +560,7 @@ class PerformanceMonitor:
         # Variáveis para coleta de dados de rede
         total_data_downloaded = 0
         http_requests_count = 0
+        tracked_responses = []  # Lista para rastrear respostas e medir depois
         
         # Interceptar respostas HTTP para medir tráfego
         async def handle_response(response):
@@ -476,20 +570,28 @@ class PerformanceMonitor:
                 # Contar requisições
                 http_requests_count += 1
                 
-                # Obter tamanho do conteúdo
-                content_length = response.headers.get('content-length')
-                if content_length:
-                    total_data_downloaded += int(content_length)
+                # Para streaming multipart, vamos armazenar a resposta para medir depois
+                # pois streaming não tem content-length fixo e o body pode estar incompleto
+                url = response.url
+                if 'video_feed' in url or 'video_feed_multi' in url:
+                    # Streaming de vídeo - vamos medir periodicamente
+                    tracked_responses.append(response)
                 else:
-                    # Se não houver content-length, tentar obter o corpo da resposta
-                    try:
-                        body = await response.body()
-                        total_data_downloaded += len(body)
-                    except:
-                        pass  # Ignorar erros ao obter o corpo
+                    # Requisições normais - medir normalmente
+                    content_length = response.headers.get('content-length')
+                    if content_length:
+                        total_data_downloaded += int(content_length)
+                    else:
+                        # Se não houver content-length, tentar obter o corpo da resposta
+                        try:
+                            body = await response.body()
+                            total_data_downloaded += len(body)
+                        except:
+                            pass  # Ignorar erros ao obter o corpo
                         
             except Exception as e:
-                print(f"Erro ao processar resposta HTTP: {e}")
+                # Não imprimir erro para não poluir a saída, apenas ignorar
+                pass
         
         # Registrar handler de resposta
         page.on('response', handle_response)
@@ -500,8 +602,384 @@ class PerformanceMonitor:
         # Navegar para a página
         await page.goto(f"{self.base_url}{page_name}", wait_until='domcontentloaded')
         
-        # Aguardar um pouco para garantir carregamento completo
-        await page.wait_for_timeout(2000)
+        # Capturar tempo imediatamente após carregamento
+        end_navigation = time.time()
+        load_time = end_navigation - start_navigation
+        
+        # Aguardar um pouco para garantir que todas as requisições sejam capturadas
+        await page.wait_for_timeout(1000)
+        
+        # Mostrar mensagem de carregamento para páginas especiais (antes de coletar FPS)
+        if page_name == "/contador" or page_name == "/contador_multi":
+            print(f"  ✅ {Colors.success(f'Página {page_name} carregada em {load_time:.2f}s')}", flush=True)
+        
+        # Se for a página contador_video, interagir com upload e processar vídeo
+        avg_fps = 0.0
+        if page_name == "/contador_video":
+            try:
+                # Mostrar mensagem de carregamento primeiro
+                print(f"  ✅ {Colors.success(f'Página /contador_video carregada em {load_time:.2f}s')}", flush=True)
+                print(f"  \n📹 {Colors.info('Interagindo com file input na página contador_video...')}", flush=True)
+                # Aguardar o label aparecer
+                await page.wait_for_selector('label[for="videoInput"]', timeout=5000)
+                
+                # Obter o caminho do primeiro vídeo MP4 na pasta uploads
+                uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
+                
+                # Procurar o primeiro arquivo MP4
+                mp4_files = []
+                if os.path.exists(uploads_dir):
+                    for file in os.listdir(uploads_dir):
+                        if file.lower().endswith('.mp4'):
+                            mp4_files.append(os.path.join(uploads_dir, file))
+                
+                if mp4_files:
+                    # Ordenar para pegar o primeiro
+                    mp4_files.sort()
+                    first_mp4 = mp4_files[0]
+                    
+                    print(f"  📁 {Colors.info(f'Selecionando vídeo: {os.path.basename(first_mp4)}')}", flush=True)
+                    
+                    # Selecionar o arquivo diretamente no input
+                    video_input = page.locator('#videoInput')
+                    await video_input.set_input_files(first_mp4)
+                    
+                    print(f"  ✅ {Colors.success('Vídeo selecionado! Enviando formulário...')}", flush=True)
+                    
+                    # Clicar no botão "Processar Vídeo" para submeter o formulário
+                    submit_button = page.locator('button[type="submit"]')
+                    await submit_button.click()
+                    
+                    # Aguardar o redirecionamento para a página de processamento
+                    print(f"  \n🔄 {Colors.info('Aguardando redirecionamento após upload...')}", flush=True)
+                    await page.wait_for_url(
+                        lambda url: 'contador_video' in url and 'video=' in url,
+                        timeout=15000
+                    )
+                    
+                    print(f"  ⏳ {Colors.info('Aguardando vídeo iniciar processamento...')}", flush=True)
+                    
+                    # Aguardar a seção de processamento aparecer
+                    await page.wait_for_selector('.processing-section', timeout=10000)
+                    await page.wait_for_selector('#fps', timeout=5000)
+                    
+                    # Aguardar o vídeo realmente começar (FPS > 0)
+                    max_wait_start = 30  # Máximo 30 segundos esperando iniciar
+                    waited_start = 0
+                    fps_started = False
+                    
+                    while waited_start < max_wait_start and not fps_started:
+                        await page.wait_for_timeout(1000)
+                        waited_start += 1
+                        
+                        # Buscar FPS atual via API
+                        try:
+                            fps_value = await page.evaluate("""
+                                async () => {
+                                    try {
+                                        const response = await fetch('/api/data');
+                                        const data = await response.json();
+                                        return parseFloat(data.fps) || 0;
+                                    } catch (e) {
+                                        return 0;
+                                    }
+                                }
+                            """)
+                            
+                            if fps_value > 0:
+                                fps_started = True
+                                print(f"  🎬 {Colors.success(f'Vídeo iniciado! FPS inicial: {fps_value:.2f}')}", flush=True)
+                                break
+                        except:
+                            pass
+                        
+                        if waited_start % 5 == 0:
+                            print(f"  ⏳ {Colors.info(f'Aguardando vídeo iniciar... ({waited_start}s)')}", flush=True)
+                    
+                    if not fps_started:
+                        print(f"  ⚠️ {Colors.warning('Vídeo não iniciou dentro do tempo esperado. Continuando...')}", flush=True)
+                    else:
+                        # Coletar métricas de FPS durante 10 segundos (a cada 500ms = 20 amostras)
+                        print(f"  \n📊 {Colors.info('Coletando FPS durante 10 segundos (a cada 500ms)...')}", flush=True)
+                        fps_samples = []
+                        collection_duration = 20  # 20 amostras a cada 500ms = 10 segundos
+                        
+                        for i in range(collection_duration):
+                            await page.wait_for_timeout(500)  # Aguardar 500ms entre amostras (mesma frequência da tela)
+                            
+                            # Buscar FPS atual da API
+                            try:
+                                fps_from_api = await page.evaluate("""
+                                    async () => {
+                                        try {
+                                            const response = await fetch('/api/data');
+                                            const data = await response.json();
+                                            return parseFloat(data.fps) || 0;
+                                        } catch (e) {
+                                            return 0;
+                                        }
+                                    }
+                                """)
+                                
+                                if fps_from_api > 0:
+                                    fps_samples.append(fps_from_api)
+                                    
+                                    # Mostrar progresso a cada 2 segundos (4 amostras)
+                                    if (i + 1) % 4 == 0:
+                                        elapsed_seconds = (i + 1) * 0.5
+                                        current_avg = sum(fps_samples) / len(fps_samples) if fps_samples else 0
+                                        print(f"    📈 {Colors.info(f'[{elapsed_seconds:.1f}s/10s] FPS atual: {fps_from_api:.2f} | Média: {current_avg:.2f}')}", flush=True)
+                                    
+                            except Exception as e:
+                                if i == 0:
+                                    print(f"    ⚠️ {Colors.warning(f'Erro ao coletar FPS: {e}')}", flush=True)
+                        
+                        # Calcular média de FPS
+                        if fps_samples:
+                            avg_fps = sum(fps_samples) / len(fps_samples)
+                            max_fps = max(fps_samples)
+                            min_fps = min(fps_samples)
+                            print(f"\n  📊 {Colors.success('Métricas de FPS coletadas (contador_video):')}", flush=True)
+                            print(f"    • Amostras: {Colors.cyan(f'{len(fps_samples)} (coletadas a cada 500ms em 10s)')}", flush=True)
+                            print(f"    • Média: {Colors.cyan(f'{avg_fps:.2f} FPS')}", flush=True)
+                            print(f"    • Máximo: {Colors.green(f'{max_fps:.2f} FPS')}", flush=True)
+                            print(f"    • Mínimo: {Colors.yellow(f'{min_fps:.2f} FPS')}", flush=True)
+                        else:
+                            print(f"  ⚠️ {Colors.warning('Nenhuma amostra de FPS válida coletada')}", flush=True)
+                        
+                        # Clicar em "Voltar" após coletar FPS
+                        print(f"  🔙 {Colors.info('Clicando em Voltar...')}", flush=True)
+                        try:
+                            back_button = page.locator('a.btn-back, a[href="/"]')
+                            await back_button.click()
+                            await page.wait_for_timeout(1000)
+                        except Exception as e:
+                            print(f"  ⚠️ {Colors.warning(f'Erro ao clicar em Voltar: {e}')}", flush=True)
+                else:
+                    print(f"  ⚠️ {Colors.warning('Nenhum vídeo MP4 encontrado na pasta uploads')}", flush=True)
+                    
+            except Exception as e:
+                print(f"  ⚠️ {Colors.warning(f'Erro ao interagir com vídeo: {e}')}", flush=True)
+                import traceback
+                traceback.print_exc()
+                # Continuar mesmo se houver erro
+        
+        # Se for a página contador (webcam), coletar FPS por 10 segundos
+        if page_name == "/contador":
+            try:
+                print(f"\n  📹 {Colors.info('Aguardando webcam iniciar...')}", flush=True)
+                
+                # Aguardar elementos aparecerem
+                await page.wait_for_selector('#fps', timeout=10000)
+                
+                # Aguardar o vídeo realmente começar (FPS > 0)
+                max_wait_start = 30
+                waited_start = 0
+                fps_started = False
+                
+                while waited_start < max_wait_start and not fps_started:
+                    await page.wait_for_timeout(1000)
+                    waited_start += 1
+                    
+                    try:
+                        fps_value = await page.evaluate("""
+                            async () => {
+                                try {
+                                    const response = await fetch('/api/data');
+                                    const data = await response.json();
+                                    return parseFloat(data.fps) || 0;
+                                } catch (e) {
+                                    return 0;
+                                }
+                            }
+                        """)
+                        
+                        if fps_value > 0:
+                            fps_started = True
+                            print(f"  🎬 {Colors.success(f'Webcam iniciada! FPS inicial: {fps_value:.2f}')}", flush=True)
+                            break
+                    except:
+                        pass
+                    
+                    if waited_start % 5 == 0:
+                        print(f"  ⏳ {Colors.info(f'Aguardando webcam iniciar... ({waited_start}s)')}", flush=True)
+                
+                if fps_started:
+                    # Coletar FPS por 10 segundos (a cada 500ms = 20 amostras)
+                    print(f"\n  📊 {Colors.info('Coletando FPS (webcam) durante 10 segundos (a cada 500ms)...')}", flush=True)
+                    fps_samples = []
+                    
+                    for i in range(20):  # 20 amostras a cada 500ms = 10 segundos
+                        await page.wait_for_timeout(500)  # Aguardar 500ms entre amostras (mesma frequência da tela)
+                        
+                        try:
+                            fps_from_api = await page.evaluate("""
+                                async () => {
+                                    try {
+                                        const response = await fetch('/api/data');
+                                        const data = await response.json();
+                                        return parseFloat(data.fps) || 0;
+                                    } catch (e) {
+                                        return 0;
+                                    }
+                                }
+                            """)
+                            
+                            if fps_from_api > 0:
+                                fps_samples.append(fps_from_api)
+                                # Mostrar progresso a cada 2 segundos (4 amostras)
+                                if (i + 1) % 4 == 0:
+                                    elapsed_seconds = (i + 1) * 0.5
+                                    current_avg = sum(fps_samples) / len(fps_samples) if fps_samples else 0
+                                    print(f"    📈 {Colors.info(f'[{elapsed_seconds:.1f}s/10s] FPS atual: {fps_from_api:.2f} | Média: {current_avg:.2f}')}", flush=True)
+                        except:
+                            pass
+                    
+                    if fps_samples:
+                        avg_fps = sum(fps_samples) / len(fps_samples)
+                        max_fps = max(fps_samples)
+                        min_fps = min(fps_samples)
+                        print(f"\n  📊 {Colors.success('Métricas de FPS coletadas (webcam):')}", flush=True)
+                        print(f"    • Amostras: {Colors.cyan(f'{len(fps_samples)} (coletadas a cada 500ms em 10s)')}", flush=True)
+                        print(f"    • Média: {Colors.cyan(f'{avg_fps:.2f} FPS')}", flush=True)
+                        print(f"    • Máximo: {Colors.green(f'{max_fps:.2f} FPS')}", flush=True)
+                        print(f"    • Mínimo: {Colors.yellow(f'{min_fps:.2f} FPS')}", flush=True)
+                    
+            except Exception as e:
+                print(f"  ⚠️ {Colors.warning(f'Erro ao coletar FPS da webcam: {e}')}", flush=True)
+        
+        # Se for a página contador_multi (duas pessoas), coletar FPS por 10 segundos
+        elif page_name == "/contador_multi":
+            try:
+                print(f"\n  👥 {Colors.info('Aguardando modo duas pessoas iniciar...')}", flush=True)
+                
+                # Aguardar container de dados aparecer (não existe #fps nesta página)
+                await page.wait_for_selector('#pessoas-container', timeout=10000)
+                
+                # Aguardar o vídeo realmente começar (FPS > 0)
+                max_wait_start = 30
+                waited_start = 0
+                fps_started = False
+                
+                while waited_start < max_wait_start and not fps_started:
+                    await page.wait_for_timeout(1000)
+                    waited_start += 1
+                    
+                    try:
+                        # Para modo multi, buscar da API /api/data_multi
+                        fps_value = await page.evaluate("""
+                            async () => {
+                                try {
+                                    const response = await fetch('/api/data_multi');
+                                    const data = await response.json();
+                                    if (data.pessoas && data.pessoas.length > 0) {
+                                        return parseFloat(data.pessoas[0].fps) || 0;
+                                    }
+                                    return 0;
+                                } catch (e) {
+                                    return 0;
+                                }
+                            }
+                        """)
+                        
+                        if fps_value > 0:
+                            fps_started = True
+                            print(f"  🎬 {Colors.success(f'Modo duas pessoas iniciado! FPS inicial: {fps_value:.2f}')}", flush=True)
+                            break
+                    except:
+                        pass
+                    
+                    if waited_start % 5 == 0:
+                        print(f"  ⏳ {Colors.info(f'Aguardando modo duas pessoas iniciar... ({waited_start}s)')}", flush=True)
+                
+                if fps_started:
+                    # Coletar FPS por 10 segundos (a cada 500ms = 20 amostras)
+                    print(f"\n  📊 {Colors.info('Coletando FPS (duas pessoas) durante 10 segundos (a cada 500ms)...')}", flush=True)
+                    fps_samples = []
+                    
+                    for i in range(20):  # 20 amostras a cada 500ms = 10 segundos
+                        await page.wait_for_timeout(500)  # Aguardar 500ms entre amostras (mesma frequência da tela)
+                        
+                        try:
+                            fps_from_api = await page.evaluate("""
+                                async () => {
+                                    try {
+                                        const response = await fetch('/api/data_multi');
+                                        const data = await response.json();
+                                        if (data.pessoas && data.pessoas.length > 0) {
+                                            return parseFloat(data.pessoas[0].fps) || 0;
+                                        }
+                                        return 0;
+                                    } catch (e) {
+                                        return 0;
+                                    }
+                                }
+                            """)
+                            
+                            if fps_from_api > 0:
+                                fps_samples.append(fps_from_api)
+                                # Mostrar progresso a cada 2 segundos (4 amostras)
+                                if (i + 1) % 4 == 0:
+                                    elapsed_seconds = (i + 1) * 0.5
+                                    current_avg = sum(fps_samples) / len(fps_samples) if fps_samples else 0
+                                    print(f"    📈 {Colors.info(f'[{elapsed_seconds:.1f}s/10s] FPS atual: {fps_from_api:.2f} | Média: {current_avg:.2f}')}", flush=True)
+                        except:
+                            pass
+                    
+                    if fps_samples:
+                        avg_fps = sum(fps_samples) / len(fps_samples)
+                        max_fps = max(fps_samples)
+                        min_fps = min(fps_samples)
+                        print(f"\n  📊 {Colors.success('Métricas de FPS coletadas (duas pessoas):')}", flush=True)
+                        print(f"    • Amostras: {Colors.cyan(f'{len(fps_samples)} (coletadas a cada 500ms em 10s)')}", flush=True)
+                        print(f"    • Média: {Colors.cyan(f'{avg_fps:.2f} FPS')}", flush=True)
+                        print(f"    • Máximo: {Colors.green(f'{max_fps:.2f} FPS')}", flush=True)
+                        print(f"    • Mínimo: {Colors.yellow(f'{min_fps:.2f} FPS')}", flush=True)
+                    
+            except Exception as e:
+                print(f"  ⚠️ {Colors.warning(f'Erro ao coletar FPS do modo duas pessoas: {e}')}", flush=True)
+        
+        # Para páginas com streaming de vídeo (contador, contador_multi, contador_video),
+        # medir o tráfego acumulado usando múltiplas abordagens
+        streaming_traffic = 0
+        if page_name in ["/contador", "/contador_multi", "/contador_video"]:
+            try:
+                # Método 1: Usar Performance API para obter bytes transferidos
+                # Isso funciona melhor para recursos estáticos, mas também captura parte do streaming
+                network_data = await page.evaluate("""
+                    () => {
+                        const entries = performance.getEntriesByType('resource');
+                        let totalBytes = 0;
+                        entries.forEach(entry => {
+                            // Para streaming, tentar usar transferSize primeiro
+                            if (entry.transferSize && entry.transferSize > 0) {
+                                totalBytes += entry.transferSize;
+                            } else if (entry.decodedBodySize && entry.decodedBodySize > 0) {
+                                // Fallback para decodedBodySize
+                                totalBytes += entry.decodedBodySize;
+                            } else if (entry.encodedBodySize && entry.encodedBodySize > 0) {
+                                // Último fallback
+                                totalBytes += entry.encodedBodySize;
+                            }
+                        });
+                        return totalBytes;
+                    }
+                """)
+                
+                if network_data and network_data > total_data_downloaded:
+                    # Se Performance API retornou mais dados, usar esse valor
+                    # (pode incluir dados de streaming)
+                    streaming_traffic = network_data - total_data_downloaded
+                    total_data_downloaded = network_data
+                elif network_data and network_data > 0:
+                    # Se Performance API retornou dados mas menos que o que já temos,
+                    # pode ser que já estejamos capturando corretamente
+                    # Mas vamos usar o maior valor
+                    total_data_downloaded = max(total_data_downloaded, network_data)
+                
+            except Exception as e:
+                # Se houver erro, continuar sem o tráfego adicional de streaming
+                pass
         
         # Obter tempo de carregamento do DOM via JavaScript
         dom_load_time = await page.evaluate("""
@@ -511,33 +989,88 @@ class PerformanceMonitor:
             }
         """)
         
-        end_navigation = time.time()
-        load_time = end_navigation - start_navigation
+        # Obter memória do navegador via Performance API (se disponível)
+        browser_memory_mb = 0.0
+        try:
+            browser_memory_data = await page.evaluate("""
+                () => {
+                    if (performance.memory) {
+                        return {
+                            used: performance.memory.usedJSHeapSize / 1024 / 1024,  // MB
+                            total: performance.memory.totalJSHeapSize / 1024 / 1024,  // MB
+                            limit: performance.memory.jsHeapSizeLimit / 1024 / 1024   // MB
+                        };
+                    }
+                    return null;
+                }
+            """)
+            if browser_memory_data:
+                browser_memory_mb = browser_memory_data.get('used', 0.0)
+        except:
+            # Performance API não disponível (Chrome/Chromium apenas)
+            pass
         
         # Converter bytes para KB
         total_data_kb = total_data_downloaded / 1024
         
         # Calcular métricas de memória e CPU para esta página
+        # Usar o tempo atual como fim do período de observação para capturar todo o processamento
         page_start_time = start_navigation
-        page_end_time = end_navigation
+        current_time = time.time()
         
-        # Filtrar métricas do sistema durante o carregamento desta página
+        # Garantir período mínimo de observação de 3 segundos para páginas simples
+        # ou usar o tempo total já decorrido para páginas com processamento longo
+        time_elapsed = current_time - start_navigation
+        min_observation_time = 3.0  # Mínimo de 3 segundos de observação
+        
+        if time_elapsed < min_observation_time:
+            # Para páginas que carregaram muito rápido, aguardar um pouco mais
+            remaining_time = min_observation_time - time_elapsed
+            await page.wait_for_timeout(int(remaining_time * 1000))
+            page_end_time = time.time()
+        else:
+            # Para páginas com processamento longo (contador_video, etc), já temos tempo suficiente
+            page_end_time = current_time
+        
+        # Filtrar métricas do sistema durante o período de observação da página
         page_system_metrics = [
             m for m in self.system_metrics 
             if page_start_time <= m.timestamp <= page_end_time
         ]
         
-        if page_system_metrics:
-            avg_memory = sum(m.memory_mb for m in page_system_metrics) / len(page_system_metrics)
+        if page_system_metrics and len(page_system_metrics) > 0:
+            # Se tiver múltiplas amostras, calcular estatísticas
+            memory_values = [m.memory_mb for m in page_system_metrics]
+            avg_memory = sum(memory_values) / len(memory_values)
             avg_cpu = sum(m.cpu_percent for m in page_system_metrics) / len(page_system_metrics)
-            max_memory = max(m.memory_mb for m in page_system_metrics)
-            min_memory = min(m.memory_mb for m in page_system_metrics)
+            max_memory = max(memory_values)
+            min_memory = min(memory_values)
+            
+            # Calcular métricas do Flask (se disponível)
+            flask_memory_values = [m.flask_memory_mb for m in page_system_metrics if m.flask_memory_mb > 0]
+            if flask_memory_values:
+                avg_flask_memory = sum(flask_memory_values) / len(flask_memory_values)
+                max_flask_memory = max(flask_memory_values)
+            else:
+                avg_flask_memory = 0.0
+                max_flask_memory = 0.0
         else:
-            # Fallback para métricas atuais
+            # Fallback para métricas atuais se não houver amostras
             process = psutil.Process()
             memory_mb = process.memory_info().rss / 1024 / 1024
             avg_memory = max_memory = min_memory = memory_mb
             avg_cpu = psutil.cpu_percent()
+            
+            # Tentar obter memória do Flask no fallback também
+            flask_proc = self.find_flask_process()
+            if flask_proc:
+                try:
+                    flask_memory_mb = flask_proc.memory_info().rss / 1024 / 1024
+                    avg_flask_memory = max_flask_memory = flask_memory_mb
+                except:
+                    avg_flask_memory = max_flask_memory = 0.0
+            else:
+                avg_flask_memory = max_flask_memory = 0.0
         
         return PageMetrics(
             name=page_name,
@@ -548,7 +1081,11 @@ class PerformanceMonitor:
             avg_memory_mb=avg_memory,
             avg_cpu_percent=avg_cpu,
             max_memory_mb=max_memory,
-            min_memory_mb=min_memory
+            min_memory_mb=min_memory,
+            avg_flask_memory_mb=avg_flask_memory,
+            max_flask_memory_mb=max_flask_memory,
+            browser_memory_mb=browser_memory_mb,
+            avg_fps=avg_fps
         )
     
     async def run_performance_test(self):
@@ -560,16 +1097,16 @@ class PerformanceMonitor:
         """
         Colors.print_header("TESTE DE PERFORMANCE DE REDE E MEMÓRIA")
         
-        print(f"\n{Colors.info(f'URL base: {self.base_url}')}")
+        print(f"\n{Colors.info(f'URL base: {self.base_url}')}", flush=True)
         pages_str = ', '.join(self.pages_to_test)
-        print(f"{Colors.info(f'Páginas a testar: {pages_str}')}")
+        print(f"{Colors.info(f'Páginas a testar: {pages_str}')}", flush=True)
         
         self.start_time = time.time()
         self.start_system_monitoring()
         
         async with async_playwright() as p:
             # Configurar navegador
-            browser = await p.chromium.launch(headless=False)  # headless=False para visualizar
+            browser = await p.chromium.launch(headless=False)  # headless=False para visualização no navegador
             context = await browser.new_context()
             page = await context.new_page()
             
@@ -577,17 +1114,26 @@ class PerformanceMonitor:
                 # Testar cada página
                 for page_name in self.pages_to_test:
                     try:
-                        print(f"\n{Colors.info(f'Navegando para: {self.base_url}{page_name}')}")
+                        # Para contador_video, não pular linha antes
+                        if page_name == "/contador_video":
+                            print(f"{Colors.info(f'Navegando para: {self.base_url}{page_name}')}", flush=True)
+                        else:
+                            print(f"\n{Colors.info(f'Navegando para: {self.base_url}{page_name}')}", flush=True)
                         metrics = await self.collect_page_metrics(page, page_name)
                         self.page_metrics.append(metrics)
                         
-                        print(f"  ✅ {Colors.success(f'Página {page_name} carregada em {metrics.load_time:.2f}s')}")
+                        # Mostrar mensagem de carregamento apenas se não for /contador, /contador_multi ou /contador_video (já foram mostradas antes)
+                        if page_name != "/contador" and page_name != "/contador_multi" and page_name != "/contador_video":
+                            print(f"  ✅ {Colors.success(f'Página {page_name} carregada em {metrics.load_time:.2f}s')}", flush=True)
+                        
+                        # Exibir métricas imediatamente após cada página
+                        self.print_page_metrics_immediate(metrics)
                         
                         # Aguardar entre páginas para estabilizar métricas
                         await page.wait_for_timeout(1000)
                         
                     except Exception as e:
-                        print(f"  ❌ {Colors.error(f'Erro ao testar {page_name}: {e}')}")
+                        print(f"  ❌ {Colors.error(f'Erro ao testar {page_name}: {e}')}", flush=True)
                         continue
                 
             finally:
@@ -596,7 +1142,31 @@ class PerformanceMonitor:
         self.stop_system_monitoring()
         self.end_time = time.time()
         
-        print(f"\n{Colors.success(f'Teste concluído em {self.get_total_execution_time():.2f} segundos!')}")
+        print(f"\n{Colors.success(f'Teste concluído em {self.get_total_execution_time():.2f} segundos!')}", flush=True)
+    
+    def print_page_metrics_immediate(self, metrics: PageMetrics):
+        """
+        Exibe métricas de uma página imediatamente após o teste.
+        
+        Args:
+            metrics: Métricas da página testada
+        """
+        print(f"\n  {Colors.highlight('📊 Métricas da Página:')}", flush=True)
+        page_display = metrics.name if metrics.name != "/" else "Index"
+        print(f"    • Página: {Colors.bold(page_display)}", flush=True)
+        print(f"    • Tempo de Carregamento: {Colors.cyan(f'{metrics.load_time:.2f}s')}", flush=True)
+        print(f"    • DOM Load: {Colors.cyan(f'{metrics.dom_load_time:.0f}ms')}", flush=True)
+        print(f"    • Dados Baixados: {Colors.green(f'{metrics.total_data_downloaded:.2f} KB')}", flush=True)
+        print(f"    • Requisições HTTP: {Colors.yellow(f'{metrics.http_requests_count}')}", flush=True)
+        print(f"    • Memória (Teste): {Colors.blue(f'{metrics.avg_memory_mb:.1f} MB')} (média) | {Colors.red(f'{metrics.max_memory_mb:.1f} MB')} (máx) | {Colors.success(f'{metrics.min_memory_mb:.1f} MB')} (mín)", flush=True)
+        if metrics.avg_flask_memory_mb > 0:
+            print(f"    • Memória (Flask): {Colors.blue(f'{metrics.avg_flask_memory_mb:.1f} MB')} (média) | {Colors.red(f'{metrics.max_flask_memory_mb:.1f} MB')} (máx)", flush=True)
+        if metrics.browser_memory_mb > 0:
+            print(f"    • Memória (Navegador): {Colors.cyan(f'{metrics.browser_memory_mb:.1f} MB')}", flush=True)
+        print(f"    • CPU Médio: {Colors.magenta(f'{metrics.avg_cpu_percent:.1f}%')}", flush=True)
+        if metrics.avg_fps > 0:
+            print(f"    • FPS Médio: {Colors.cyan(f'{metrics.avg_fps:.2f}')}", flush=True)
+        print(flush=True)  # Linha em branco para separação
     
     def get_total_execution_time(self) -> float:
         """
@@ -779,22 +1349,23 @@ class PerformanceMonitor:
                 ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
                         f'{value:.1f}', ha='center', va='bottom', fontweight='bold')
         
-        # Gráfico 4: Tempo de Carregamento por Página
+        # Gráfico 4: DOM Load por Página
         if self.page_metrics:
-            load_times = [m.load_time for m in self.page_metrics]
+            # Converter DOM Load de milissegundos para segundos
+            dom_load_times = [m.dom_load_time / 1000.0 for m in self.page_metrics]
             
-            bars = ax4.bar(range(len(page_names)), load_times, 
+            bars = ax4.bar(range(len(page_names)), dom_load_times, 
                           color=['#FF9F43', '#10AC84', '#5F27CD', '#00D2D3'])
-            ax4.set_title('Tempo de Carregamento por Página', fontweight='bold')
+            ax4.set_title('DOM Load por Página', fontweight='bold')
             ax4.set_ylabel('Tempo (segundos)')
             ax4.set_xticks(range(len(page_names)))
             ax4.set_xticklabels(page_names, rotation=45, ha='right')
             ax4.grid(True, alpha=0.3, axis='y')
             
             # Adicionar valores nas barras
-            for bar, value in zip(bars, load_times):
-                ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                        f'{value:.2f}s', ha='center', va='bottom', fontweight='bold')
+            for bar, value in zip(bars, dom_load_times):
+                ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.001,
+                        f'{value:.3f}s', ha='center', va='bottom', fontweight='bold')
         
         plt.tight_layout()
         
@@ -815,9 +1386,25 @@ class PerformanceMonitor:
         """
         stats = self.generate_summary_stats()
         
+        # Calcular estatísticas adicionais para insights
+        heaviest_page = max(self.page_metrics, key=lambda x: x.total_data_downloaded)
+        fastest_page = min(self.page_metrics, key=lambda x: x.dom_load_time)
+        slowest_page = max(self.page_metrics, key=lambda x: x.dom_load_time)
+        highest_cpu = max(self.page_metrics, key=lambda x: x.avg_cpu_percent)
+        # Priorizar memória do Flask se disponível, senão usar memória do teste
+        highest_memory = max(self.page_metrics, 
+                           key=lambda x: x.avg_flask_memory_mb if x.avg_flask_memory_mb > 0 else x.avg_memory_mb)
+        pages_with_fps = [m for m in self.page_metrics if m.avg_fps > 0]
+        best_fps_page = max(pages_with_fps, key=lambda x: x.avg_fps) if pages_with_fps else None
+        worst_fps_page = min(pages_with_fps, key=lambda x: x.avg_fps) if pages_with_fps else None
+        
         # Preparar dados para tabela
         table_rows = ""
         for metrics in self.page_metrics:
+            fps_display = f"{metrics.avg_fps:.2f}" if metrics.avg_fps > 0 else "-"
+            flask_memory_display = f"{metrics.avg_flask_memory_mb:.1f} MB" if metrics.avg_flask_memory_mb > 0 else "-"
+            flask_max_display = f"{metrics.max_flask_memory_mb:.1f} MB" if metrics.max_flask_memory_mb > 0 else "-"
+            browser_memory_display = f"{metrics.browser_memory_mb:.1f} MB" if metrics.browser_memory_mb > 0 else "-"
             table_rows += f"""
             <tr>
                 <td>{metrics.name}</td>
@@ -828,9 +1415,131 @@ class PerformanceMonitor:
                 <td>{metrics.avg_memory_mb:.1f} MB</td>
                 <td>{metrics.max_memory_mb:.1f} MB</td>
                 <td>{metrics.min_memory_mb:.1f} MB</td>
+                <td>{flask_memory_display}</td>
+                <td>{flask_max_display}</td>
+                <td>{browser_memory_display}</td>
                 <td>{metrics.avg_cpu_percent:.1f}%</td>
+                <td>{fps_display}</td>
             </tr>
             """
+        
+        # Construir seção de insights detalhada
+        fps_section = ""
+        if pages_with_fps:
+            avg_fps = sum([m.avg_fps for m in pages_with_fps]) / len(pages_with_fps)
+            diff_percent = ((best_fps_page.avg_fps - worst_fps_page.avg_fps) / worst_fps_page.avg_fps * 100) if best_fps_page and worst_fps_page else 0
+            fps_high = [m.name for m in pages_with_fps if m.avg_fps > 15]
+            fps_low = [m.name for m in pages_with_fps if m.avg_fps <= 15]
+            
+            fps_high_html = f'<li><strong>Páginas com FPS &gt; 15:</strong> {" ".join(fps_high)} <span class="insight-stat">Performance excelente</span></li>' if fps_high else ''
+            fps_low_html = f'<li><strong>Páginas com FPS &lt; 15:</strong> {" ".join(fps_low)} <span class="insight-stat">Requer otimização</span></li>' if fps_low else ''
+            
+            fps_section = f'''
+                    <div class="insight-category">
+                        <h3>🎬 Análise de Performance de Vídeo (FPS)</h3>
+                        <div class="insight-highlight">
+                            <strong>Melhor Performance de FPS</strong>
+                            <span class="insight-stat">{best_fps_page.name}</span> com {best_fps_page.avg_fps:.2f} FPS
+                        </div>
+                        <div class="insight-highlight">
+                            <strong>Menor Performance de FPS</strong>
+                            <span class="insight-stat">{worst_fps_page.name}</span> com {worst_fps_page.avg_fps:.2f} FPS
+                        </div>
+                        <ul>
+                            <li><strong>Média geral de FPS:</strong> {avg_fps:.2f} FPS <span class="insight-stat">{len(pages_with_fps)} páginas com processamento</span></li>
+                            <li><strong>Diferença de performance:</strong> {diff_percent:.1f}% superior na melhor página</li>
+                            {fps_high_html}
+                            {fps_low_html}
+                        </ul>
+                    </div>
+                    '''
+        
+        # Construir recomendações baseadas nos dados coletados
+        # Inicializa uma lista vazia para armazenar as recomendações em formato HTML
+        recommendations = []
+        
+        # Recomendação 1: Análise de tráfego de rede
+        # Verifica se a página mais pesada consome mais de 50 KB de dados
+        if heaviest_page.total_data_downloaded > 50:
+            # Se sim, adiciona recomendação para otimizar (comprimir recursos, lazy loading)
+            recommendations.append(f'<li><strong>Otimização de rede recomendada:</strong> A página {heaviest_page.name} consome {heaviest_page.total_data_downloaded:.1f} KB. Considere comprimir recursos ou usar lazy loading.</li>')
+        else:
+            # Se não, elogia o baixo consumo de dados
+            recommendations.append('<li><strong>Tráfego de rede:</strong> Todas as páginas apresentam baixo consumo de dados, excelente!</li>')
+        
+        # Recomendação 2: Análise de performance de CPU
+        # Verifica se alguma página usa mais de 40% de CPU em média
+        if highest_cpu.avg_cpu_percent > 40:
+            # Se sim, sugere otimização de processamento ou uso de Web Workers
+            recommendations.append(f'<li><strong>Performance de CPU:</strong> A página {highest_cpu.name} apresenta alto consumo ({highest_cpu.avg_cpu_percent:.1f}%). Considere otimizar processamento ou usar Web Workers.</li>')
+        else:
+            # Se não, confirma que o uso está dentro de limites aceitáveis
+            recommendations.append('<li><strong>Performance de CPU:</strong> Uso de CPU está dentro de limites aceitáveis em todas as páginas.</li>')
+        
+        # Recomendação 3: Análise de gestão de memória
+        # Usa memória do Flask se disponível, senão usa memória do teste
+        if highest_memory.avg_flask_memory_mb > 0:
+            # Se Flask está sendo monitorado, usar métricas do Flask
+            mem_variation = highest_memory.max_flask_memory_mb - highest_memory.avg_flask_memory_mb
+            if mem_variation > 5:
+                recommendations.append(f'<li><strong>Gestão de memória (Flask):</strong> Monitorar variação de {mem_variation:.1f} MB em {highest_memory.name}. Verificar possível vazamento de memória.</li>')
+            else:
+                recommendations.append('<li><strong>Gestão de memória (Flask):</strong> Uso de memória estável no servidor Flask, sem sinais de vazamento.</li>')
+        else:
+            # Fallback para memória do teste
+            if (highest_memory.max_memory_mb - highest_memory.min_memory_mb) > 5:
+                recommendations.append(f'<li><strong>Gestão de memória:</strong> Monitorar variação de {highest_memory.max_memory_mb - highest_memory.min_memory_mb:.1f} MB em {highest_memory.name}. Verificar possível vazamento de memória.</li>')
+            else:
+                recommendations.append('<li><strong>Gestão de memória:</strong> Uso de memória estável em todas as páginas, sem sinais de vazamento.</li>')
+        
+        # Recomendação 4: Análise de FPS (apenas se houver páginas com processamento de vídeo)
+        # Verifica se existe página com FPS e se a pior tem menos de 15 FPS (threshold de performance aceitável)
+        if worst_fps_page and worst_fps_page.avg_fps < 15:
+            # Se sim, sugere otimização de processamento de vídeo ou redução de qualidade
+            recommendations.append(f'<li><strong>Otimização de FPS:</strong> {worst_fps_page.name} apresenta {worst_fps_page.avg_fps:.2f} FPS. Considerar otimizar processamento de vídeo ou reduzir qualidade da detecção.</li>')
+        
+        # Recomendação 5: Análise de tempo de carregamento (DOM Load)
+        # Converte DOM Load de milissegundos para segundos (/1000) e verifica se é maior que 1 segundo
+        if slowest_page.dom_load_time / 1000 > 1.0:
+            # Se sim, sugere otimização de recursos críticos para melhorar o carregamento
+            recommendations.append(f'<li><strong>Carregamento:</strong> A página mais lenta ({slowest_page.name}) leva {slowest_page.dom_load_time/1000:.2f}s (DOM Load). Considerar otimização de recursos críticos.</li>')
+        else:
+            # Se não, elogia a velocidade de carregamento
+            recommendations.append('<li><strong>Carregamento:</strong> Todas as páginas carregam rapidamente, excelente performance!</li>')
+        
+        # Converte a lista de recomendações em uma string HTML única
+        # Junta todos os itens da lista separados por quebras de linha com indentação
+        recommendations_html = '\n                            '.join(recommendations)
+        
+        # Construir strings problemáticas separadamente (evitar backslash em f-strings)
+        memory_peak_html = (f'<span class="insight-stat">Pico Flask: {highest_memory.max_flask_memory_mb:.1f} MB</span>' 
+                           if highest_memory.max_flask_memory_mb > 0 
+                           else f'<span class="insight-stat">Pico: {highest_memory.max_memory_mb:.1f} MB</span>')
+        
+        # Construir string de variação de memória
+        if highest_memory.avg_flask_memory_mb > 0:
+            flask_variation = highest_memory.max_flask_memory_mb - highest_memory.avg_flask_memory_mb
+            flask_variation_pct = ((flask_variation / highest_memory.avg_flask_memory_mb * 100) 
+                                  if highest_memory.avg_flask_memory_mb > 0 else 0)
+            memory_variation_html = (f'<li><strong>Variação de memória (Flask):</strong> '
+                                     f'{flask_variation:.1f} MB '
+                                     f'<span class="insight-stat">{flask_variation_pct:.1f}% de variação</span></li>')
+        else:
+            test_variation = highest_memory.max_memory_mb - highest_memory.min_memory_mb
+            test_variation_pct = ((test_variation / highest_memory.avg_memory_mb * 100) 
+                                 if highest_memory.avg_memory_mb > 0 else 0)
+            memory_variation_html = (f'<li><strong>Variação de memória:</strong> '
+                                    f'{test_variation:.1f} MB '
+                                    f'<span class="insight-stat">{test_variation_pct:.1f}% de variação</span></li>')
+        
+        # Construir string de memória do navegador se disponível
+        browser_memory_insight_html = ''
+        if any(m.browser_memory_mb > 0 for m in self.page_metrics):
+            browser_max_page = max(self.page_metrics, key=lambda x: x.browser_memory_mb)
+            browser_max_value = max([m.browser_memory_mb for m in self.page_metrics])
+            browser_memory_insight_html = (f'<li><strong>Memória do navegador (maior):</strong> '
+                                          f'{browser_max_page.name} '
+                                          f'<span class="insight-stat">{browser_max_value:.1f} MB</span></li>')
         
         html_content = f"""
 <!DOCTYPE html>
@@ -848,36 +1557,41 @@ class PerformanceMonitor:
         
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0f0f0f;
             min-height: 100vh;
             padding: 20px;
+            color: #ffffff;
         }}
         
         .container {{
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }}
         
         .header {{
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
             padding: 30px;
             text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
         }}
         
         .header h1 {{
             font-size: 2.5em;
             margin-bottom: 10px;
             font-weight: 300;
+            color: #ffffff;
         }}
         
         .header .subtitle {{
             font-size: 1.2em;
             opacity: 0.9;
+            color: #a0a0a0;
         }}
         
         .summary-cards {{
@@ -885,30 +1599,35 @@ class PerformanceMonitor:
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             padding: 30px;
-            background: #f8f9fa;
+            background: transparent;
         }}
         
         .card {{
-            background: white;
+            background: rgba(255, 255, 255, 0.05);
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             text-align: center;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }}
         
         .card:hover {{
             transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         }}
         
         .card-icon {{
             font-size: 2.5em;
             margin-bottom: 15px;
+            opacity: 0.9;
         }}
         
         .card-title {{
             font-size: 1.1em;
-            color: #666;
+            color: #a0a0a0;
             margin-bottom: 10px;
             font-weight: 500;
         }}
@@ -916,17 +1635,18 @@ class PerformanceMonitor:
         .card-value {{
             font-size: 2em;
             font-weight: bold;
-            color: #2c3e50;
+            color: #ffffff;
         }}
         
         .card-unit {{
             font-size: 0.8em;
-            color: #888;
+            color: #666666;
             margin-left: 5px;
         }}
         
         .content {{
             padding: 30px;
+            background: transparent;
         }}
         
         .section {{
@@ -935,90 +1655,145 @@ class PerformanceMonitor:
         
         .section-title {{
             font-size: 1.8em;
-            color: #2c3e50;
+            color: #ffffff;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 3px solid #3498db;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
         }}
         
         .table-container {{
             overflow-x: auto;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }}
         
         table {{
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            background: transparent;
         }}
         
         th {{
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
             padding: 15px;
             text-align: left;
             font-weight: 600;
             cursor: pointer;
             user-select: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
         }}
         
         th:hover {{
-            background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+            background: rgba(255, 255, 255, 0.12);
         }}
         
         td {{
             padding: 12px 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
         }}
         
         tr:hover {{
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.08);
         }}
         
         .chart-container {{
             text-align: center;
             margin: 30px 0;
             padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }}
         
         .chart-container img {{
             max-width: 100%;
             height: auto;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }}
         
         .insights {{
-            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            background: rgba(255, 255, 255, 0.05);
             padding: 25px;
-            border-radius: 10px;
-            border-left: 5px solid #27ae60;
+            border-radius: 12px;
+            border-left: 4px solid rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }}
         
-        .insights h3 {{
-            color: #27ae60;
+        .insight-category {{
+            margin-bottom: 30px;
+        }}
+        
+        .insight-category:last-child {{
+            margin-bottom: 0;
+        }}
+        
+        .insight-category h3 {{
+            color: #ffffff;
             margin-bottom: 15px;
             font-size: 1.3em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
         }}
         
-        .insights ul {{
+        .insight-category h4 {{
+            color: #e0e0e0;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            margin-top: 15px;
+        }}
+        
+        .insight-category ul {{
             list-style: none;
             padding-left: 0;
         }}
         
-        .insights li {{
-            margin-bottom: 10px;
+        .insight-category li {{
+            margin-bottom: 12px;
             padding-left: 25px;
             position: relative;
+            color: #a0a0a0;
+            line-height: 1.6;
         }}
         
-        .insights li:before {{
-            content: "🔍";
+        .insight-category li:before {{
+            content: "▸";
             position: absolute;
             left: 0;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: bold;
+        }}
+        
+        .insight-category li strong {{
+            color: #ffffff;
+        }}
+        
+        .insight-highlight {{
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid rgba(255, 255, 255, 0.4);
+        }}
+        
+        .insight-highlight strong {{
+            color: #ffffff;
+            display: block;
+            margin-bottom: 5px;
+        }}
+        
+        .insight-stat {{
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            margin-left: 8px;
+            color: #ffffff;
+            font-weight: 600;
         }}
         
         .export-buttons {{
@@ -1030,27 +1805,30 @@ class PerformanceMonitor:
             display: inline-block;
             padding: 12px 25px;
             margin: 0 10px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
             text-decoration: none;
-            border-radius: 25px;
+            border-radius: 12px;
             font-weight: 600;
             transition: all 0.3s ease;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             cursor: pointer;
         }}
         
         .btn:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         }}
         
         .footer {{
-            background: #2c3e50;
-            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            color: #a0a0a0;
             text-align: center;
             padding: 20px;
             font-size: 0.9em;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
         }}
         
         @media (max-width: 768px) {{
@@ -1265,10 +2043,14 @@ class PerformanceMonitor:
                                 <th onclick="sortTable(2)">DOM Load</th>
                                 <th onclick="sortTable(3)">Dados Baixados</th>
                                 <th onclick="sortTable(4)">Requisições</th>
-                                <th onclick="sortTable(5)">Memória Média</th>
-                                <th onclick="sortTable(6)">Memória Máxima</th>
-                                <th onclick="sortTable(7)">Memória Mínima</th>
-                                <th onclick="sortTable(8)">CPU Médio</th>
+                                <th onclick="sortTable(5)">Memória Teste (Média)</th>
+                                <th onclick="sortTable(6)">Memória Teste (Máx)</th>
+                                <th onclick="sortTable(7)">Memória Teste (Mín)</th>
+                                <th onclick="sortTable(8)">Memória Flask (Média)</th>
+                                <th onclick="sortTable(9)">Memória Flask (Máx)</th>
+                                <th onclick="sortTable(10)">Memória Navegador</th>
+                                <th onclick="sortTable(11)">CPU Médio</th>
+                                <th onclick="sortTable(12)">FPS Médio</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1288,13 +2070,61 @@ class PerformanceMonitor:
             <div class="section">
                 <h2 class="section-title">🔍 Insights e Análises</h2>
                 <div class="insights">
-                    <h3>Principais Descobertas:</h3>
-                    <ul>
-                        <li><strong>Página mais pesada em rede:</strong> {stats['heaviest_page']} com {max([m.total_data_downloaded for m in self.page_metrics]):.1f} KB baixados</li>
-                        <li><strong>Página com maior consumo de CPU:</strong> {max(self.page_metrics, key=lambda x: x.avg_cpu_percent).name} com {max([m.avg_cpu_percent for m in self.page_metrics]):.1f}% de uso médio</li>
-                        <li><strong>Página com maior uso de memória:</strong> {max(self.page_metrics, key=lambda x: x.avg_memory_mb).name} com {max([m.avg_memory_mb for m in self.page_metrics]):.1f} MB médios</li>
-                        <li><strong>Tempo total de execução:</strong> {stats['total_execution_time']:.2f} segundos para testar {stats['pages_tested']} páginas</li>
-                    </ul>
+                    <div class="insight-category">
+                        <h3>📊 Resumo Executivo</h3>
+                        <div class="insight-highlight">
+                            <strong>Tempo Total de Execução</strong>
+                            {stats['total_execution_time']:.2f} segundos para testar {stats['pages_tested']} páginas
+                            <span class="insight-stat">{stats['total_execution_time']/stats['pages_tested']:.2f}s por página</span>
+                        </div>
+                        <ul>
+                            <li><strong>Média de memória:</strong> {stats['memory_stats']['avg']:.1f} MB <span class="insight-stat">Variação: {stats['memory_stats']['max']-stats['memory_stats']['min']:.1f} MB</span></li>
+                            <li><strong>Média de CPU:</strong> {stats['cpu_stats']['avg']:.1f}% <span class="insight-stat">Consumo moderado</span></li>
+                            <li><strong>Total de dados transferidos:</strong> {stats['total_network_data_kb']:.1f} KB <span class="insight-stat">({stats['total_network_data_kb']/1024:.2f} MB)</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-category">
+                        <h3>🌐 Análise de Rede e Performance</h3>
+                        <div class="insight-highlight">
+                            <strong>Página Mais Pesada em Rede</strong>
+                            <span class="insight-stat">{heaviest_page.name}</span> com {heaviest_page.total_data_downloaded:.1f} KB baixados
+                        </div>
+                        <ul>
+                            <li><strong>Página mais rápida (DOM Load):</strong> {fastest_page.name} <span class="insight-stat">{fastest_page.dom_load_time/1000:.2f}s</span></li>
+                            <li><strong>Página mais lenta (DOM Load):</strong> {slowest_page.name} <span class="insight-stat">{slowest_page.dom_load_time/1000:.2f}s</span></li>
+                            <li><strong>Diferença de velocidade:</strong> {((slowest_page.dom_load_time - fastest_page.dom_load_time) / fastest_page.dom_load_time * 100):.1f}% mais lenta</li>
+                            <li><strong>Maior número de requisições:</strong> {max(self.page_metrics, key=lambda x: x.http_requests_count).name} <span class="insight-stat">{max([m.http_requests_count for m in self.page_metrics])} requisições</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-category">
+                        <h3>💻 Análise de Recursos do Sistema</h3>
+                        <div class="insight-highlight">
+                            <strong>Maior Consumo de CPU</strong>
+                            <span class="insight-stat">{highest_cpu.name}</span> com {highest_cpu.avg_cpu_percent:.1f}% de uso médio
+                        </div>
+                        <div class="insight-highlight">
+                            <strong>Maior Uso de Memória</strong>
+                            <span class="insight-stat">{highest_memory.name}</span> com {highest_memory.avg_flask_memory_mb:.1f} MB (Flask) / {highest_memory.avg_memory_mb:.1f} MB (Teste) médios
+                            {memory_peak_html}
+                        </div>
+                        <ul>
+                            {memory_variation_html}
+                            <li><strong>Página com menor uso de memória:</strong> {min(self.page_metrics, key=lambda x: x.avg_flask_memory_mb if x.avg_flask_memory_mb > 0 else x.avg_memory_mb).name} <span class="insight-stat">{min([m.avg_flask_memory_mb if m.avg_flask_memory_mb > 0 else m.avg_memory_mb for m in self.page_metrics]):.1f} MB</span></li>
+                            <li><strong>Página com menor consumo de CPU:</strong> {min(self.page_metrics, key=lambda x: x.avg_cpu_percent).name} <span class="insight-stat">{min([m.avg_cpu_percent for m in self.page_metrics]):.1f}%</span></li>
+                            {browser_memory_insight_html}
+                        </ul>
+                    </div>
+                    
+                    {fps_section}
+                    
+                    <div class="insight-category">
+                        <h3>📈 Recomendações e Observações</h3>
+                        <ul>
+                            {recommendations_html}
+                        </ul>
+                    </div>
                 </div>
             </div>
             
@@ -1416,9 +2246,12 @@ async def main():
     Coordena todas as verificações prévias, execução do teste
     e geração de relatórios. Trata erros e fornece feedback ao usuário.
     """
+    # Verificar argumentos de linha de comando
+    import sys
+    skip_confirmation = '--skip-confirmation' in sys.argv or '--yes' in sys.argv or '-y' in sys.argv
     Colors.print_header("TESTE DE PERFORMANCE - DETECTOR DE POLICHINELOS")
     
-    print(f"{Colors.info('Este script executará uma análise completa de performance da aplicação web,')}")
+    print(f"\n{Colors.info('Este script executará uma análise completa de performance da aplicação web,')}")
     print(f"{Colors.info('monitorando rede e uso de memória.')}")
     
     Colors.print_section("INSTRUÇÕES")
@@ -1437,7 +2270,9 @@ async def main():
     print(f"  • Não feche o navegador durante a execução")
     print(f"  • O teste pode levar alguns minutos para completar")
     print(f"  • Relatórios serão salvos em tests/reports/")
-    
+
+    print(flush=True)
+    time.sleep(2)  # Aguardar 2 segundos para o usuário ler as instruções
     # Verificar dependências
     if not check_dependencies():
         return
@@ -1450,9 +2285,12 @@ async def main():
         return
     
     # Pedir confirmação do usuário
-    if not ask_user_confirmation():
-        print(f"\n{Colors.warning('Teste cancelado pelo usuário.')}")
-        return
+    if not skip_confirmation:
+        if not ask_user_confirmation():
+            print(f"\n{Colors.warning('Teste cancelado pelo usuário.')}")
+            return
+    else:
+        print(f"\n{Colors.info('Confirmação automática ativada. Iniciando teste...')}")
     
     # Criar monitor de performance
     monitor = PerformanceMonitor()

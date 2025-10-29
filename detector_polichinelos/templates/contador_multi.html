@@ -34,7 +34,29 @@
 
       <!-- Container dinâmico para dados das pessoas detectadas -->
       <div id="pessoas-container" class="data-grid">
-        <!-- As pessoas detectadas serão inseridas aqui dinamicamente via JavaScript -->
+        <!-- Pessoa 1 -->
+        <div class="data-item" id="pessoa-1">
+          <div class="data-icon">
+            <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
+          </div>
+          <div class="data-content">
+            <div class="data-value">Pessoa 1</div>
+            <div class="data-label" id="jumps-1">Polichinelos: 0</div>
+            <div class="data-label" id="fps-1">FPS: 0</div>
+          </div>
+        </div>
+        
+        <!-- Pessoa 2 -->
+        <div class="data-item" id="pessoa-2">
+          <div class="data-icon">
+            <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
+          </div>
+          <div class="data-content">
+            <div class="data-value">Pessoa 2</div>
+            <div class="data-label" id="jumps-2">Polichinelos: 0</div>
+            <div class="data-label" id="fps-2">FPS: 0</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -90,43 +112,34 @@
         const response = await fetch('/api/data_multi');
         const data = await response.json();
 
-        // Atualizar status do sistema
-        const statusText = document.getElementById('statusText');
-        const statusDot = document.getElementById('statusDot');
-        statusText.textContent = data.stage || 'Desconhecido';
-        statusDot.style.background = data.stage === 'Contando' ? '#00ff66' : '#ffaa00';
+        // Atualizar status do sistema usando a mesma função de script.js
+        updateConnectionStatus(true);
 
-        // Atualizar container de pessoas
-        const container = document.getElementById('pessoas-container');
-        container.innerHTML = '';
-
+        // Atualizar dados das pessoas (os cards já existem no HTML)
         if (data.pessoas && data.pessoas.length > 0) {
-          // Criar cards para cada pessoa detectada
           data.pessoas.forEach((pessoa, index) => {
-            const pessoaCard = document.createElement('div');
-            pessoaCard.classList.add('data-item');
-            pessoaCard.innerHTML = `
-              <div class="data-icon">
-                <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
-              </div>
-              <div class="data-content">
-                <div class="data-value">Pessoa ${index + 1}</div>
-                <div class="data-label">Polichinelos: ${pessoa.jumps}</div>
-                <div class="data-label">FPS: ${pessoa.fps}</div>
-              </div>
-            `;
-            container.appendChild(pessoaCard);
+            const pessoaIndex = index + 1;
+            const jumpsElement = document.getElementById(`jumps-${pessoaIndex}`);
+            const fpsElement = document.getElementById(`fps-${pessoaIndex}`);
+            
+            if (jumpsElement) {
+              jumpsElement.textContent = `Polichinelos: ${pessoa.jumps || 0}`;
+            }
+            if (fpsElement) {
+              fpsElement.textContent = `FPS: ${pessoa.fps || 0}`;
+            }
           });
-        } else {
-          container.innerHTML = `<p>Nenhuma pessoa detectada</p>`;
         }
 
       } catch (err) {
         console.error('Erro ao buscar dados:', err);
+        // Atualizar status para desconectado em caso de erro
+        updateConnectionStatus(false);
       }
     }
 
-    // Atualizar dados a cada segundo
+    // Atualizar dados imediatamente e depois a cada segundo
+    atualizarDados();
     setInterval(atualizarDados, 1000);
   </script>
 </body>

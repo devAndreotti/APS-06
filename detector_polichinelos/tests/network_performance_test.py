@@ -32,6 +32,7 @@ import asyncio
 import json
 import time
 import threading
+import webbrowser  # Para abrir relatório HTML no navegador
 from datetime import datetime
 from typing import Dict, List, Any
 
@@ -1307,71 +1308,124 @@ class PerformanceMonitor:
             print(Colors.warning("[AVISO] Nenhuma metrica de sistema disponivel para grafico"))
             return
         
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
-        fig.suptitle('Análise de Performance - Métricas do Sistema', fontsize=16, fontweight='bold')
+        # Configurar tema escuro para os gráficos (alinhado com o site)
+        plt.style.use('dark_background')
+        fig = plt.figure(figsize=(15, 10), facecolor='#0f0f0f')
+        gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[0, 1])
+        ax3 = fig.add_subplot(gs[1, 0])
+        ax4 = fig.add_subplot(gs[1, 1])
+        
+        fig.suptitle('Análise de Performance - Métricas do Sistema', 
+                     fontsize=16, fontweight='bold', color='#ffffff')
         
         # Converter timestamps para datetime
         timestamps = [datetime.fromtimestamp(m.timestamp) for m in self.system_metrics]
         
-        # Gráfico 1: Uso de Memória ao Longo do Tempo
-        ax1.plot(timestamps, [m.memory_mb for m in self.system_metrics], 
-                color='blue', linewidth=2, marker='o', markersize=3)
-        ax1.set_title('Uso de Memória ao Longo do Tempo', fontweight='bold')
-        ax1.set_ylabel('Memória (MB)')
-        ax1.grid(True, alpha=0.3)
+        # Gráfico 1: Uso de Memória do Flask ao Longo do Tempo
+        # Priorizar memória do Flask, usar memória do teste como fallback
+        flask_memory_data = [m.flask_memory_mb for m in self.system_metrics]
+        has_flask_data = any(m > 0 for m in flask_memory_data)
+        
+        if has_flask_data:
+            # Usar memória do Flask
+            memory_data = flask_memory_data
+            memory_label = 'Memória Flask (MB)'
+            memory_color = '#e0e0e0'  # Cor clara para contraste no fundo escuro
+        else:
+            # Fallback para memória do teste se Flask não disponível
+            memory_data = [m.memory_mb for m in self.system_metrics]
+            memory_label = 'Memória Teste (MB)'
+            memory_color = '#a0a0a0'  # Cor mais suave para teste
+        
+        ax1.plot(timestamps, memory_data, 
+                color=memory_color, linewidth=2, marker='o', markersize=3)
+        ax1.set_title('Uso de Memória ao Longo do Tempo', fontweight='bold', color='#ffffff')
+        ax1.set_ylabel(memory_label, color='#ffffff')
+        ax1.tick_params(colors='#ffffff')
+        ax1.grid(True, alpha=0.2, color='#666666')
+        ax1.set_facecolor((1.0, 1.0, 1.0, 0.05))  # Tupla RGBA (R, G, B, Alpha) com valores 0-1
         ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
-        plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45)
+        plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45, color='#ffffff')
         
         # Gráfico 2: Uso de CPU ao Longo do Tempo
         ax2.plot(timestamps, [m.cpu_percent for m in self.system_metrics], 
-                color='red', linewidth=2, marker='s', markersize=3)
-        ax2.set_title('Uso de CPU ao Longo do Tempo', fontweight='bold')
-        ax2.set_ylabel('CPU (%)')
-        ax2.grid(True, alpha=0.3)
+                color='#ffffff', linewidth=2, marker='s', markersize=3)  # Branco para contraste no tema escuro
+        ax2.set_title('Uso de CPU ao Longo do Tempo', fontweight='bold', color='#ffffff')
+        ax2.set_ylabel('CPU (%)', color='#ffffff')
+        ax2.tick_params(colors='#ffffff')
+        ax2.grid(True, alpha=0.2, color='#666666')
+        ax2.set_facecolor((1.0, 1.0, 1.0, 0.05))  # Tupla RGBA (R, G, B, Alpha) com valores 0-1
         ax2.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
-        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45)
+        plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45, color='#ffffff')
         
         # Gráfico 3: Tráfego de Rede por Página (Barras)
         if self.page_metrics:
             page_names = [m.name for m in self.page_metrics]
             network_data = [m.total_data_downloaded for m in self.page_metrics]
             
-            bars = ax3.bar(range(len(page_names)), network_data, 
-                          color=['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'])
-            ax3.set_title('Tráfego de Rede por Página', fontweight='bold')
-            ax3.set_ylabel('Dados Baixados (KB)')
-            ax3.set_xticks(range(len(page_names)))
-            ax3.set_xticklabels(page_names, rotation=45, ha='right')
-            ax3.grid(True, alpha=0.3, axis='y')
+            # Cores escuras e elegantes para o tema (cinzas claros e brancos)
+            bar_colors = ['#ffffff', '#e0e0e0', '#a0a0a0', '#666666']
+            if len(page_names) > 4:
+                # Se tiver mais de 4 páginas, repetir cores
+                bar_colors = bar_colors * ((len(page_names) // 4) + 1)
+            bar_colors = bar_colors[:len(page_names)]
             
-            # Adicionar valores nas barras
+            bars = ax3.bar(range(len(page_names)), network_data, 
+                          color=bar_colors, edgecolor=(1.0, 1.0, 1.0, 0.3), linewidth=1)
+            ax3.set_title('Tráfego de Rede por Página', fontweight='bold', color='#ffffff')
+            ax3.set_ylabel('Dados Baixados (KB)', color='#ffffff')
+            ax3.tick_params(colors='#ffffff')
+            ax3.set_xticks(range(len(page_names)))
+            ax3.set_xticklabels(page_names, rotation=45, ha='right', color='#ffffff')
+            ax3.grid(True, alpha=0.2, axis='y', color='#666666')
+            ax3.set_facecolor((1.0, 1.0, 1.0, 0.05))  # Tupla RGBA (R, G, B, Alpha) com valores 0-1
+            
+            # Adicionar valores nas barras (texto branco para contraste)
             for bar, value in zip(bars, network_data):
                 ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
-                        f'{value:.1f}', ha='center', va='bottom', fontweight='bold')
+                        f'{value:.1f}', ha='center', va='bottom', 
+                        fontweight='bold', color='#ffffff')
         
         # Gráfico 4: DOM Load por Página
         if self.page_metrics:
+            # Garantir que page_names está definido (caso gráfico 3 não tenha sido executado)
+            if 'page_names' not in locals():
+                page_names = [m.name for m in self.page_metrics]
+            
             # Converter DOM Load de milissegundos para segundos
             dom_load_times = [m.dom_load_time / 1000.0 for m in self.page_metrics]
             
-            bars = ax4.bar(range(len(page_names)), dom_load_times, 
-                          color=['#FF9F43', '#10AC84', '#5F27CD', '#00D2D3'])
-            ax4.set_title('DOM Load por Página', fontweight='bold')
-            ax4.set_ylabel('Tempo (segundos)')
-            ax4.set_xticks(range(len(page_names)))
-            ax4.set_xticklabels(page_names, rotation=45, ha='right')
-            ax4.grid(True, alpha=0.3, axis='y')
+            # Cores escuras e elegantes (variação de cinzas)
+            bar_colors = ['#ffffff', '#e0e0e0', '#a0a0a0', '#666666']
+            if len(page_names) > 4:
+                bar_colors = bar_colors * ((len(page_names) // 4) + 1)
+            bar_colors = bar_colors[:len(page_names)]
             
-            # Adicionar valores nas barras
+            bars = ax4.bar(range(len(page_names)), dom_load_times, 
+                          color=bar_colors, edgecolor=(1.0, 1.0, 1.0, 0.3), linewidth=1)
+            ax4.set_title('DOM Load por Página', fontweight='bold', color='#ffffff')
+            ax4.set_ylabel('Tempo (segundos)', color='#ffffff')
+            ax4.tick_params(colors='#ffffff')
+            ax4.set_xticks(range(len(page_names)))
+            ax4.set_xticklabels(page_names, rotation=45, ha='right', color='#ffffff')
+            ax4.grid(True, alpha=0.2, axis='y', color='#666666')
+            ax4.set_facecolor((1.0, 1.0, 1.0, 0.05))  # Tupla RGBA (R, G, B, Alpha) com valores 0-1
+            
+            # Adicionar valores nas barras (texto branco)
             for bar, value in zip(bars, dom_load_times):
                 ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.001,
-                        f'{value:.3f}s', ha='center', va='bottom', fontweight='bold')
+                        f'{value:.3f}s', ha='center', va='bottom', 
+                        fontweight='bold', color='#ffffff')
         
+        # Ajustar layout
         plt.tight_layout()
         
-        # Salvar gráfico
+        # Salvar gráfico com fundo escuro preservado
         chart_path = os.path.join(self.reports_dir, "performance_chart.png")
-        plt.savefig(chart_path, dpi=300, bbox_inches='tight')
+        plt.savefig(chart_path, dpi=300, bbox_inches='tight', 
+                   facecolor='#0f0f0f', edgecolor='none')
         plt.close()
         
         print(f"\n📊 {Colors.success(f'Relatório gráfico salvo em: {chart_path}')}")
@@ -1403,20 +1457,15 @@ class PerformanceMonitor:
         for metrics in self.page_metrics:
             fps_display = f"{metrics.avg_fps:.2f}" if metrics.avg_fps > 0 else "-"
             flask_memory_display = f"{metrics.avg_flask_memory_mb:.1f} MB" if metrics.avg_flask_memory_mb > 0 else "-"
-            flask_max_display = f"{metrics.max_flask_memory_mb:.1f} MB" if metrics.max_flask_memory_mb > 0 else "-"
             browser_memory_display = f"{metrics.browser_memory_mb:.1f} MB" if metrics.browser_memory_mb > 0 else "-"
             table_rows += f"""
             <tr>
                 <td>{metrics.name}</td>
-                <td>{metrics.load_time:.2f}s</td>
                 <td>{metrics.dom_load_time:.0f}ms</td>
                 <td>{metrics.total_data_downloaded:.1f} KB</td>
                 <td>{metrics.http_requests_count}</td>
                 <td>{metrics.avg_memory_mb:.1f} MB</td>
-                <td>{metrics.max_memory_mb:.1f} MB</td>
-                <td>{metrics.min_memory_mb:.1f} MB</td>
                 <td>{flask_memory_display}</td>
-                <td>{flask_max_display}</td>
                 <td>{browser_memory_display}</td>
                 <td>{metrics.avg_cpu_percent:.1f}%</td>
                 <td>{fps_display}</td>
@@ -2039,18 +2088,14 @@ class PerformanceMonitor:
                         <thead>
                             <tr>
                                 <th onclick="sortTable(0)">Página</th>
-                                <th onclick="sortTable(1)">Tempo Carregamento</th>
-                                <th onclick="sortTable(2)">DOM Load</th>
-                                <th onclick="sortTable(3)">Dados Baixados</th>
-                                <th onclick="sortTable(4)">Requisições</th>
-                                <th onclick="sortTable(5)">Memória Teste (Média)</th>
-                                <th onclick="sortTable(6)">Memória Teste (Máx)</th>
-                                <th onclick="sortTable(7)">Memória Teste (Mín)</th>
-                                <th onclick="sortTable(8)">Memória Flask (Média)</th>
-                                <th onclick="sortTable(9)">Memória Flask (Máx)</th>
-                                <th onclick="sortTable(10)">Memória Navegador</th>
-                                <th onclick="sortTable(11)">CPU Médio</th>
-                                <th onclick="sortTable(12)">FPS Médio</th>
+                                <th onclick="sortTable(1)">DOM Load</th>
+                                <th onclick="sortTable(2)">Dados Baixados</th>
+                                <th onclick="sortTable(3)">Requisiç.</th>
+                                <th onclick="sortTable(4)">Memória Teste (Média)</th>
+                                <th onclick="sortTable(5)">Memória Flask (Média)</th>
+                                <th onclick="sortTable(6)">Memória Navegador</th>
+                                <th onclick="sortTable(7)">CPU Médio</th>
+                                <th onclick="sortTable(8)">FPS Médio</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2306,7 +2351,22 @@ async def main():
         monitor.generate_html_report()
         
         print(f"\n🎉 {Colors.success('Teste de performance concluído com sucesso!')}")
-        print(f"📁 {Colors.info('Verifique os relatórios gerados em tests/reports/')}\n")
+        print(f"📁 {Colors.info('Verifique os relatórios gerados em tests/reports/')}")
+        
+        # Abrir relatório HTML automaticamente no navegador
+        html_path = os.path.join(monitor.reports_dir, "network_memory_report.html")
+        if os.path.exists(html_path):
+            # Converter caminho relativo para absoluto e usar formato file://
+            html_abs_path = os.path.abspath(html_path)
+            html_url = f"file:///{html_abs_path}".replace('\\', '/')
+            try:
+                webbrowser.open(html_url)
+                print(f"🌐 {Colors.success('Relatório HTML aberto automaticamente no navegador!')}\n")
+            except Exception as e:
+                print(f"⚠️ {Colors.warning(f'Não foi possível abrir o relatório automaticamente: {e}')}")
+                print(f"📄 {Colors.info(f'Acesse manualmente: {html_abs_path}')}\n")
+        else:
+            print(f"⚠️ {Colors.warning('Relatório HTML não encontrado.')}\n")
         
     except Exception as e:
         print(f"\n❌ {Colors.error(f'Erro durante execução do teste: {e}')}")

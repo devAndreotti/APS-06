@@ -52,7 +52,7 @@
 }
 
 .btn-back:active {
-  transform: scale(0.98);
+  transform: scale(0.94);
 }
 
 /* ============================================================================
@@ -260,7 +260,7 @@ input[type="file"] {
 }
 
 .file-input-label:active {
-  transform: scale(0.98);
+  transform: scale(0.94);
 }
 
 .file-input-icon {
@@ -457,76 +457,6 @@ input[type="file"] {
   object-fit: contain;
   display: block;
   background: var(--color-bg);
-}
-
-.video-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  padding: var(--space-lg);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.video-wrapper:hover .video-overlay {
-  opacity: 1;
-}
-
-.video-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.control-btn {
-  width: 48px;
-  height: 48px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.control-btn:hover {
-  background: var(--color-surface-hover);
-  transform: scale(1.1);
-}
-
-.video-progress {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.progress-bar {
-  flex: 1;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--color-accent);
-  width: 0%;
-  transition: width 0.3s ease;
-}
-
-.time-display {
-  color: var(--color-text);
-  font-size: 0.9rem;
-  font-weight: 500;
-  min-width: 80px;
-  text-align: right;
 }
 
 /* Stats Sidebar */

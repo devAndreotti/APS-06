@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='contador.css') }}">
 </head>
-<body class="fullscreen">
+<body class="fullscreen multi-mode">
 
   <!-- Seção de vídeo em tela cheia para múltiplas pessoas -->
   <div class="fullscreen-video">
@@ -21,65 +21,56 @@
 
   <!-- Cards de dados flutuantes em tempo real -->
   <div class="floating-data-cards">
-
-    <!-- Card principal de monitoramento -->
-    <div class="main-data-card glass">
-      <div class="card-header">
-        <h3>Dados em Tempo Real</h3>
-        <div class="status-indicator" id="statusIndicator">
-          <div class="status-dot" id="statusDot"></div>
-          <span id="statusText">Conectando...</span>
-        </div>
+      <!-- Botões primeiro -->
+      <div class="floating-btn-container">
+        <!-- Botão voltar para página inicial -->
+        <a href="/" class="floating-btn btn-back">
+          <img src="{{ url_for('static', filename='images/icons/arrow-left.svg') }}" alt="Back" class="lucide-icon">
+        </a>
+        <!-- Botão para alternar modo (2 pessoas / 1 pessoa) -->
+        <form action="{{ url_for('toggle_mode') }}" method="POST">
+          <input type="hidden" name="current_mode" value="2">
+          <button type="submit" class="floating-btn btn-back">
+            <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
+          </button>
+        </form>
       </div>
-
-      <!-- Container dinâmico para dados das pessoas detectadas -->
-      <div id="pessoas-container" class="data-grid">
-        <!-- Pessoa 1 -->
-        <div class="data-item" id="pessoa-1">
-          <div class="data-icon">
-            <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
-          </div>
-          <div class="data-content">
-            <div class="data-value">Pessoa 1</div>
-            <div class="data-label" id="jumps-1">Polichinelos: 0</div>
-            <div class="data-label" id="fps-1">FPS: 0</div>
+      <!-- Card principal de monitoramento -->
+      <div class="main-data-card glass">
+        <div class="card-header">
+          <h3>Dados em Tempo Real</h3>
+          <div class="status-indicator" id="statusIndicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Conectando...</span>
           </div>
         </div>
-        
-        <!-- Pessoa 2 -->
-        <div class="data-item" id="pessoa-2">
-          <div class="data-icon">
-            <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
+        <!-- Container dinâmico para dados das pessoas detectadas -->
+        <div id="pessoas-container" class="data-grid">
+          <!-- Pessoa 1 -->
+          <div class="data-item" id="pessoa-1">
+            <div class="data-icon">
+              <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
+            </div>
+            <div class="data-content">
+              <div class="data-value">Pessoa 1</div>
+              <div class="data-label" id="jumps-1">Polichinelos: 0</div>
+              <div class="data-label" id="fps-1">FPS: 0</div>
+            </div>
           </div>
-          <div class="data-content">
-            <div class="data-value">Pessoa 2</div>
-            <div class="data-label" id="jumps-2">Polichinelos: 0</div>
-            <div class="data-label" id="fps-2">FPS: 0</div>
+          <!-- Pessoa 2 -->
+          <div class="data-item" id="pessoa-2">
+            <div class="data-icon">
+              <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
+            </div>
+            <div class="data-content">
+              <div class="data-value">Pessoa 2</div>
+              <div class="data-label" id="jumps-2">Polichinelos: 0</div>
+              <div class="data-label" id="fps-2">FPS: 0</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Container de botões de controle -->
-    <div class="floating-btn-container">
-      
-      <!-- Botão voltar para página inicial -->
-      <a href="/" class="floating-btn btn-back">
-        <img src="{{ url_for('static', filename='images/icons/arrow-left.svg') }}" alt="Back" class="lucide-icon">
-        Voltar
-      </a>
-      
-      <!-- Botão para alternar modo (2 pessoas / 1 pessoa) -->
-      <form action="{{ url_for('toggle_mode') }}" method="POST">
-        <input type="hidden" name="current_mode" value="2">
-        <button type="submit" class="floating-btn btn-back">
-          <img src="{{ url_for('static', filename='images/icons/user.svg') }}" alt="User" class="lucide-icon">
-          1 Pessoa
-        </button>
-      </form>
-      
-    </div>
-  </div>
 
   <!-- Instruções flutuantes para múltiplas pessoas -->
   <div class="floating-instructions">

@@ -7,12 +7,16 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Hero section */
 .hero {
   text-align: center;
-  padding: 60px 0;
+  padding: 60px 0 10px 0;
   position: relative;
   z-index: 1;
 }
@@ -37,7 +41,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-lg);
-  margin: 40px 0;
   position: relative;
   z-index: 1;
 }
@@ -112,10 +115,104 @@
 }
 
 /* ============================================================================
+   RODAPÉ
+   ============================================================================ */
+
+.site-footer {
+  padding: 20px;
+  border-top: 1px solid var(--color-border);
+  background: rgba(0, 0, 0, 0.2);
+  height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.site-footer .footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.site-footer .repo-link {
+  color: var(--color-text);
+}
+
+.site-footer .repo-link {
+  transition: var(--transition);
+  border-radius: var(--radius);
+  border: 1px var(--color-border);
+}
+
+.site-footer .repo-link:hover {
+  background: var(--color-surface);
+  padding: 5px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.site-footer .repo-link:active {
+  transform: scale(0.95);
+  background: var(--color-surface-active);
+}
+
+.site-footer .footer-divider {
+  opacity: 0.6;
+}
+
+/* ============================================================================
    RESPONSIVIDADE
    ============================================================================ */
 
-@media (max-width: 768px) {
-  .hero h1 { font-size: 2rem; }
-  .mode-cards { grid-template-columns: 1fr; }
-}
+   @media (max-width: 830px) {
+    .hero h1 { font-size: 2rem; }
+    .mode-cards { grid-template-columns: 1fr; }
+  
+    /* No mobile, permite scroll natural */
+    .container {
+      min-height: 0;
+      justify-content: flex-start;
+    }
+  
+    .site-footer {
+      height: auto;
+      margin-top: 40px;
+    }
+  }
+
+  /* iPhone SE */
+  @media (max-width: 410px) {
+    .hero {
+      padding: 32px 0 8px 0;
+    }
+    .hero h1 {
+      font-size: 1.6rem;
+    }
+    .hero p {
+      font-size: 1rem;
+      margin-bottom: 24px;
+    }
+    .mode-cards {
+      gap: var(--space-md);
+    }
+
+    .site-footer {
+      padding: 12px;
+      height: auto;
+    }
+    .site-footer .footer-inner {
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+    }
+    .site-footer .footer-divider {
+      display: none;
+    }
+    .site-footer .repo-link {
+      padding: 4px 6px;
+    }
+  }

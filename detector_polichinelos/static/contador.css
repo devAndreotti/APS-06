@@ -1,5 +1,5 @@
 /* ============================================================================
-   LAYOUT E COMPONENTES - CERTO
+   MODO UMA PESSOA - LAYOUT E COMPONENTES
    ============================================================================ */
 
 /* Layout de tela cheia */
@@ -28,7 +28,7 @@
 }
 
 /* ============================================================================
-   CARD DE DADOS FLUTUANTES - CERTO
+   CARD DE DADOS FLUTUANTES
    ============================================================================ */
 
 /* Cards de dados flutuantes */
@@ -87,15 +87,14 @@
 }
 
 /* ============================================================================
-   BOTÕES FLUTUANTES - CERTO
+   BOTÕES FLUTUANTES
    ============================================================================ */
 
 /* Container do botão voltar */
 .floating-btn-container {
-  margin-top: var(--space-md);
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-sm);
+  gap: var(--space-md);
   flex-wrap: wrap;
 }
 
@@ -103,12 +102,12 @@
 .floating-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-sm);
   background: var(--color-bg);
   backdrop-filter: blur(10px);
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 10px 16px;
+  padding: var(--space-md);
+  padding: var(--space-md) var(--space-xl);
   color: var(--color-text);
   font-size: 0.9rem;
   font-weight: 500;
@@ -139,11 +138,11 @@
 
 .floating-btn:active,
 .floating-btn-container form button.floating-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.87);
 }
 
 /* ============================================================================
-   COMPONENTES DE DADOS - CERTO
+   COMPONENTES DE DADOS
    ============================================================================ */
 
 /* Card principal de dados */
@@ -233,7 +232,7 @@
 }
 
 /* ============================================================================
-   INSTRUÇÕES FLUTUANTES - CERTO
+   INSTRUÇÕES FLUTUANTES
    ============================================================================ */
 
 .floating-instructions {
@@ -329,97 +328,172 @@
   font-size: 0.8rem;
 }
 
+/* ======================================================================================================================================================
+   MODO DUAS PESSOAS (apenas contador_multi.html)
+   ====================================================================================================================================================== */
+
+.multi-mode .floating-instructions {
+  display: none;
+}
+
+.multi-mode .floating-btn {
+  padding: var(--space-sm) var(--space-md);
+}
+
+.multi-mode .card-header {
+  margin-bottom: var(--space-sm2);
+  padding-bottom: var(--space-sm);
+}
+
+.multi-mode .floating-data-cards {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: var(--space-md);
+  transform: translateX(-50%);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: none;
+  gap: var(--space-sm2);
+}
+
+.multi-mode .main-data-card {
+  min-width: min(92vw, 600px);
+  padding: var(--space-md);
+  padding-top: var(--space-sm2);
+}
+
+.multi-mode .data-grid {
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+  gap: var(--space-md);
+}
+
+.multi-mode .floating-btn-container {
+  justify-content: flex-start;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-md);
+}
+
 /* ============================================================================
    RESPONSIVIDADE
    ============================================================================ */
 
-@media (max-width: 768px) {
-  .floating-btn-container {
-    margin-bottom: var(--space-sm);
-    gap: var(--space-xs);
-  }
-  
-  .floating-btn {
-    padding: 10px 14px;
-    font-size: 0.85rem;
-  }
-  
-  .floating-btn .lucide-icon,
-  .floating-btn img.lucide-icon {
-    width: 14px;
-    height: 14px;
-  }
-  
-  .floating-data-cards {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    max-width: none;
-  }
-  
-  .data-grid {
+/* Modo uma pessoa */
+@media (max-width: 1200px) {
+
+  body:not(.multi-mode) .data-grid { /* Aplicar apenas quando NÃO for modo multi */
     grid-template-columns: 1fr;
   }
-  
-  .data-item {
-    padding: 10px;
-  }
-  
-  .data-icon {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-  
-  .data-value {
-    font-size: 1rem;
-  }
-  
-  .floating-instructions {
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    max-width: none;
-  }
-  
-  .instructions-content {
-    padding: var(--space-md);
-  }
-  
-  .instructions-content h3 {
-    font-size: 1rem;
-  }
-  
-  .instructions-content li {
-    font-size: 0.8rem;
-  }
-}
 
-@media (max-width: 480px) {
-  .floating-btn-container {
-    margin-bottom: var(--space-xs);
-    flex-direction: column;
-  }
-  
-  .floating-btn-container form {
-    width: 100%;
-    display: flex;
-  }
-  
-  .floating-btn {
-    padding: 8px 12px;
-    font-size: 0.8rem;
-    width: 100%;
+  body:not(.multi-mode) .floating-btn-container {
     justify-content: center;
   }
-
-  .btn-back {
-    order: 3;
+  
+  body:not(.multi-mode) .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
   }
   
-  .floating-instructions {
-    bottom: 60px;
-    left: 10px;
-    right: 10px;
+  body:not(.multi-mode) .card-header .status-indicator {
+    margin-top: var(--space-xs);
+  }
+
+}
+
+/* Modo uma pessoa - abaixo de 900px: ocultar instruções e centralizar painel no rodapé com botões acima do card e os 4 data-items em linha */
+@media (max-width: 1000px) {
+  /* esconder instruções */
+  body:not(.multi-mode) .floating-instructions { display: none; }
+
+  /* manter título e status na mesma linha */
+  body:not(.multi-mode) .card-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: var(--space-sm);
+  }
+
+  /* posicionar o container como no multi (embaixo e centralizado) */
+  body:not(.multi-mode) .floating-data-cards {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: var(--space-md);
+    transform: translateX(-50%);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: none;
+    gap: var(--space-sm);
+  }
+
+  /* botões acima do card */
+  body:not(.multi-mode) .floating-btn-container { 
+    order: 0; 
+    justify-content: center; 
+    align-items: center; 
+    gap: var(--space-sm);
+  }
+  body:not(.multi-mode) .main-data-card { 
+    order: 1; 
+    min-width: min(95vw, 700px);
+    padding: var(--space-sm3);
+    padding-top: var(--space-sm);
+  }
+
+  /* 4 cards em linha */
+  body:not(.multi-mode) .data-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(140px, 1fr));
+    gap: var(--space-md);
+  }
+
+  /* título + status com respiro menor */
+  body:not(.multi-mode) .card-header {
+    margin-bottom: var(--space-sm2);
+    padding-bottom: var(--space-sm);
   }
 }
+
+/* Modo uma pessoa - abaixo de 720px: quebrar os 4 data-items em 2x2 */
+@media (max-width: 720px) {
+  body:not(.multi-mode) .data-grid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+    gap: var(--space-md);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 414px) {
+  /* Redução de fontes apenas no modo multi */
+  .multi-mode .card-header h3 { font-size: var(--font-md2); }
+  .multi-mode .status-indicator { font-size: var(--font-sm); }
+  .multi-mode .data-value { font-size: var(--font-md); }
+  .multi-mode .data-label { font-size: var(--font-xs); }
+  .multi-mode .floating-btn { font-size: var(--font-sm); }
+  .multi-mode .data-label { font-size: var(--font-xxs); }
+  .multi-mode .data-icon { width: 29px; height: 29px; }
+}
+
+
+

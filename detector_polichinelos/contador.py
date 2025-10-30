@@ -17,8 +17,16 @@ class PoseDetector:
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Converte para RGB (necessário para o MediaPipe)
         self.results = self.pose.process(img_rgb)  # Processa a imagem e detecta os pontos da pose
         if self.results.pose_landmarks and draw:
-            # Desenha os landmarks e conexões do corpo na imagem
-            self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
+            # Estilos personalizados: linhas cinza e pontos brancos
+            landmark_spec = self.mp_draw.DrawingSpec(color=(50, 50, 50), thickness=2, circle_radius=2)
+            connection_spec = self.mp_draw.DrawingSpec(color=(200, 200, 200), thickness=2, circle_radius=2)
+            self.mp_draw.draw_landmarks(
+                img,
+                self.results.pose_landmarks,
+                self.mp_pose.POSE_CONNECTIONS,
+                landmark_drawing_spec=landmark_spec,
+                connection_drawing_spec=connection_spec,
+            )
         return img  # Retorna a imagem processada (com ou sem desenho)
 
     # Retorna a lista de landmarks (pontos do corpo) com suas coordenadas na imagem

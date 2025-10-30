@@ -31,8 +31,16 @@ class ContadorPolichinelos:
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Converte para RGB (necessário para o MediaPipe)
         results = self.pose.process(img_rgb)  # Processa a imagem para detectar os marcos corporais
         if results.pose_landmarks and draw:
-            # Desenha as conexões e pontos do corpo na imagem
-            self.mp_draw.draw_landmarks(img, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
+            # Desenha com estilos personalizados: linhas cinzas e pontos brancos
+            landmark_spec = self.mp_draw.DrawingSpec(color=(50, 50, 50), thickness=2, circle_radius=2)
+            connection_spec = self.mp_draw.DrawingSpec(color=(200, 200, 200), thickness=2, circle_radius=2)
+            self.mp_draw.draw_landmarks(
+                img,
+                results.pose_landmarks,
+                self.mp_pose.POSE_CONNECTIONS,
+                landmark_drawing_spec=landmark_spec,
+                connection_drawing_spec=connection_spec,
+            )
         return img, results
     
     def find_landmarks(self, img, results):

@@ -38,19 +38,19 @@ def has_required_landmarks(lm_list, ids):
 
 
 # Função que processa o movimento do polichinelo (jumping jack)
-def process_jumping_jack(lm_list, stage, count, calib, img, last_valid_lm):
+def process_jumping_jack(lm_list, stage, count, calib, img, last_valid_lm, last_ankle_y=None):
     required_ids = [11, 12, 15, 16, 23, 24, 27, 28]  # IDs dos pontos usados (ombros, punhos, quadris e tornozelos)
 
     # Se não há calibração, retorna imediatamente (não deveria acontecer mais)
     if calib is None:
-        return stage, count, last_valid_lm
+        return stage, count, last_valid_lm, last_ankle_y
 
     # Se landmarks estiverem incompletos, tenta usar o último válido
     if not has_required_landmarks(lm_list, required_ids):
-        if last_valid_lm is not None and has_required_landmarks(last_valid_lm, required_ids):
-            lm_list = last_valid_lm
-        else:
-            return stage, count, last_valid_lm  # Sai se não houver dados válidos
+            if last_valid_lm is not None and has_required_landmarks(last_valid_lm, required_ids):
+                lm_list = last_valid_lm
+            else:
+                return stage, count, last_valid_lm, last_ankle_y
 
     # Atualiza o último frame válido apenas se tiver todos os pontos necessários
     if has_required_landmarks(lm_list, required_ids):
@@ -58,7 +58,7 @@ def process_jumping_jack(lm_list, stage, count, calib, img, last_valid_lm):
 
     # Se não houver landmarks suficientes, não faz nada
     if len(lm_list) == 0 or len(lm_list) < 29:
-        return stage, count, last_valid_lm
+        return stage, count, last_valid_lm, last_ankle_y
 
     # Captura coordenadas dos principais pontos do corpo
     pulso_esq = lm_list[15][1:]
@@ -73,6 +73,21 @@ def process_jumping_jack(lm_list, stage, count, calib, img, last_valid_lm):
     # Calcula distâncias entre partes do corpo
     dist_quadris = math.dist(quadril_esq, quadril_dir)
     dist_tornozelos = math.dist(tornozelo_esq, tornozelo_dir)
+
+    # Altura média dos tornozelos
+    ankle_y = (tornozelo_esq[1] + tornozelo_dir[1]) / 2
+
+    # Limite para considerar "pulo" (pode ajustar 0.03 ~ 0.07) fazer teste para ajuste
+    jump_threshold = img.shape[0] * 0.07  # 5% da altura do frame
+
+    # Detecta se houve um "pulo" (tornozelos sobem)
+    pulou = False
+    if last_ankle_y is not None:
+        if last_ankle_y - ankle_y > jump_threshold:
+            pulou = True
+
+    # Atualiza o último valor de tornozelo
+    last_ankle_y = ankle_y
 
     # Define uma altura mínima que o braço deve subir para contar como levantado
     altura_minima_braço = img.shape[0] * 0.10  # 10% da altura da imagem
@@ -95,7 +110,7 @@ def process_jumping_jack(lm_list, stage, count, calib, img, last_valid_lm):
             count += 1
             stage = "down"
 
-    return stage, count, last_valid_lm
+    return stage, count, last_valid_lm, last_ankle_y
 
 
 # Função principal que processa o vídeo e conta polichinelos em tempo real
@@ -103,6 +118,7 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
     # Verifica se a fonte é um arquivo de vídeo ou uma câmera
     if isinstance(video_source, str) and video_source.endswith('.mp4'):
         cap = cv2.VideoCapture(video_source)  # Lê o vídeo
+        
     else:
         cap = cv2.VideoCapture(0)  # Usa a webcam
 
@@ -115,11 +131,14 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
     last_valid_lm = None
     calibrated = False
     calib = None
+    last_ankle_y = None
 
     while True:
         success, img = cap.read()
         if not success:
             break
+
+        img = cv2.flip(img, 1)   
 
         img = detector.find_pose(img)
         lm_list = detector.find_landmarks(img)
@@ -144,8 +163,8 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
                 # print("Calibrado!")  # Debug removido
 
         # Processar contagem (agora calib nunca será None)
-        stage, count, last_valid_lm = process_jumping_jack(
-            lm_list, stage, count, calib, img, last_valid_lm
+        stage, count, last_valid_lm, last_ankle_y = process_jumping_jack(
+            lm_list, stage, count, calib, img, last_valid_lm, last_ankle_y
         )
 
         # Calcular FPS

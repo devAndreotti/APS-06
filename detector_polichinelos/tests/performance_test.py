@@ -175,23 +175,21 @@ class Colors:
     @staticmethod
     def print_header(title: str, width: int = 80):
         """Imprime cabeçalho formatado"""
-        print("\n" + "=" * width, flush=True)
-        print(f" {title} ", flush=True)
-        print("=" * width, flush=True)
+        print("\n" + Colors.bold(Colors.magenta("╔" + "═" * (width - 2) + "╗")), flush=True)
+        print(Colors.bold(Colors.magenta(f"║ {title.center(width - 4)} ║")), flush=True)
+        print(Colors.bold(Colors.magenta("╚" + "═" * (width - 2) + "╝")), flush=True)
     
     @staticmethod
     def print_section(title: str, width: int = 80):
         """Imprime seção formatada"""
-        print("\n" + "─" * width, flush=True)
-        print(f" {title} ", flush=True)
-        print("─" * width + "\n", flush=True)
+        print(f"\n{Colors.bold(Colors.cyan(' ' + title + ' ')).center(width + 18, '─')}", flush=True)
     
     @staticmethod
     def print_subsection(title: str, width: int = 80):
         """Imprime subseção formatada"""
-        print("\n" + "─" * width)
-        print(f" {title} ")
-        print("─" * width + "\n")
+        print("\n" + "─" * width, flush=True)
+        print(f" {title} ", flush=True)
+        print("─" * width + "\n", flush=True)
     
     @staticmethod
     def print_card(title: str, value: str, icon: str = "", color: str = None):
@@ -1228,48 +1226,47 @@ class PerformanceMonitor:
         usando tabelas, cards e formatação colorida.
         """
         Colors.print_header("RELATÓRIO DE PERFORMANCE - ANÁLISE DE REDE E MEMÓRIA")
-        
         stats = self.generate_summary_stats()
         
         # Cards de resumo
-        print(f"\n{Colors.bold(Colors.highlight('RESUMO EXECUTIVO'))}")
+        Colors.print_section("RESUMO EXECUTIVO")
         Colors.print_card("Tempo Total", f"{stats['total_execution_time']:.2f} segundos", "⏱️", Colors.CYAN)
         Colors.print_card("Memória Média", f"{stats['memory_stats']['avg']:.2f} MB", "🧠", Colors.BLUE)
         Colors.print_card("CPU Médio", f"{stats['cpu_stats']['avg']:.1f}%", "🖥️", Colors.MAGENTA)
         Colors.print_card("Dados Baixados", f"{stats['total_network_data_kb']:.1f} KB", "🌐", Colors.GREEN)
         
         # Seção de memória detalhada
-        Colors.print_section("ANÁLISE DE MEMÓRIA")
-        Colors.print_card("Média", f"{stats['memory_stats']['avg']:.2f} MB", "", Colors.CYAN)
-        Colors.print_card("Pico Máximo", f"{stats['memory_stats']['max']:.2f} MB", "", Colors.RED)
-        Colors.print_card("Valor Mínimo", f"{stats['memory_stats']['min']:.2f} MB", "", Colors.GREEN)
+        Colors.print_section("ANÁLISE DE MEMÓRIA (PROCESSO DE TESTE)")
+        Colors.print_card("Média", f"{stats['memory_stats']['avg']:.2f} MB", "🔹", Colors.CYAN)
+        Colors.print_card("Pico Máximo", f"{stats['memory_stats']['max']:.2f} MB", "🔺", Colors.RED)
+        Colors.print_card("Valor Mínimo", f"{stats['memory_stats']['min']:.2f} MB", "🔸", Colors.GREEN)
         
         # Tabela de tráfego de rede
         Colors.print_section("TRÁFEGO DE REDE POR PÁGINA")
         headers = ["Página", "Tamanho", "Tempo (s)", "Requests"]
-        widths = [20, 15, 12, 10]
+        widths = [18, 15, 12, 10]
         Colors.print_table_header(headers, widths)
         
         for i, metrics in enumerate(self.page_metrics):
             page_display = metrics.name if metrics.name != "/" else "Index"
-            colors = [Colors.WHITE, Colors.CYAN, Colors.YELLOW, Colors.GREEN]
+            colors = [Colors.WHITE, Colors.GREEN, Colors.YELLOW, Colors.CYAN]
             Colors.print_table_row([
                 page_display,
                 f"{metrics.total_data_downloaded:.2f} KB",
                 f"{metrics.load_time:.2f}",
                 str(metrics.http_requests_count)
             ], widths, colors)
-        
         Colors.print_table_footer(widths)
         
         # Página com maior consumo
         Colors.print_section("PÁGINA COM MAIOR CONSUMO DE REDE")
         heaviest_page = max(self.page_metrics, key=lambda x: x.total_data_downloaded)
         heaviest_display = heaviest_page.name if heaviest_page.name != "/" else "Index"
-        Colors.print_card("Página", heaviest_display, "🏆", Colors.YELLOW)
-        Colors.print_card("Tamanho Total", f"{heaviest_page.total_data_downloaded:.2f} KB", "🌐", Colors.RED)
+        Colors.print_card("Página", Colors.bold(heaviest_display), "🏆", Colors.YELLOW)
+        Colors.print_card("Tamanho Total", Colors.bold(f"{heaviest_page.total_data_downloaded:.2f} KB"), "🌐", Colors.RED)
         
-        Colors.print_header("FIM DO RELATÓRIO")
+        print("\n")
+        Colors.print_header("FIM DO RELATÓRIO", 80)
     
     def save_json_report(self):
         """

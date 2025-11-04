@@ -171,6 +171,13 @@
    @media (max-width: 830px) {
     .hero h1 { font-size: 2rem; }
     .mode-cards { grid-template-columns: 1fr; }
+
+    .mode-card::before {
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 450%;
+    }
   
     /* No mobile, permite scroll natural */
     .container {
@@ -181,6 +188,15 @@
     .site-footer {
       height: auto;
       margin-top: 40px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .mode-card::before {
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 250%;
     }
   }
 

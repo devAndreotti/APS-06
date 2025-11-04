@@ -244,9 +244,23 @@
   transition: var(--transition);
 }
 
-.floating-instructions:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-hover);
+.floating-instructions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 99;
+  border-radius: var(--radius);
+}
+
+.floating-instructions:hover::before {
+  opacity: 1;
 }
 
 .instructions-content {

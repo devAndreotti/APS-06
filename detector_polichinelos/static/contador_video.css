@@ -288,7 +288,7 @@ input[type="file"] {
 }
 
 .file-name {
-  color: var(--color-accent);
+  color: var(--color-text-muted);
   font-weight: 600;
   margin-top: 8px;
   font-size: 0.85rem;
@@ -514,16 +514,6 @@ input[type="file"] {
   transform: translateY(-2px);
 }
 
-.stat-item.primary {
-  background: var(--color-accent-gradient);
-  border-color: var(--color-accent);
-}
-
-.stat-item.primary .stat-value {
-  color: #000;
-  font-weight: 800;
-}
-
 .stat-icon {
   width: 40px;
   height: 40px;
@@ -555,7 +545,7 @@ input[type="file"] {
 
 .stat-label {
   font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 500;

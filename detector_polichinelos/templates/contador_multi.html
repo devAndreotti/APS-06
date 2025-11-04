@@ -87,6 +87,14 @@
   <!-- Scripts JavaScript -->
   <script src="{{ url_for('static', filename='script.js') }}"></script>
   <script>
+    // Preparar transições dos dois cards individualmente
+    if (window.prepareElementHighlight) {
+      const p1 = document.querySelector('#pessoas-container #pessoa-1');
+      const p2 = document.querySelector('#pessoas-container #pessoa-2');
+      window.prepareElementHighlight(p1);
+      window.prepareElementHighlight(p2);
+    }
+
     // Resetar dados ao carregar a página
     fetch('/reset_multi', { method: 'POST' }).catch(() => {});
 
@@ -96,6 +104,9 @@
         fetch('/reset_multi', { method: 'POST' }).catch(() => {});
       }
     });
+
+    // Controle interno para detectar incremento da Pessoa 1
+    let prevJumps = [0, 0];
 
     // Função para atualizar dados das pessoas detectadas
     async function atualizarDados() {
@@ -114,7 +125,18 @@
             const fpsElement = document.getElementById(`fps-${pessoaIndex}`);
             
             if (jumpsElement) {
-              jumpsElement.textContent = `Polichinelos: ${pessoa.jumps || 0}`;
+              const jumpsValue = typeof pessoa.jumps === 'number' ? pessoa.jumps : 0;
+              jumpsElement.textContent = `Polichinelos: ${jumpsValue}`;
+
+              // Efeito individual por pessoa
+              const prevFromDataset = Number(jumpsElement.dataset.prev || 0);
+              const increased = jumpsValue > prevJumps[index] || jumpsValue > prevFromDataset;
+              if (increased && window.applyJumpHighlight) {
+                const card = document.querySelector(`#pessoas-container #pessoa-${pessoaIndex}`);
+                if (card) window.applyJumpHighlight(card);
+              }
+              prevJumps[index] = jumpsValue;
+              jumpsElement.dataset.prev = String(jumpsValue);
             }
             if (fpsElement) {
               fpsElement.textContent = `FPS: ${pessoa.fps || 0}`;

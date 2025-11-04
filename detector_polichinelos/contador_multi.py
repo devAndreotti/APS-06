@@ -5,10 +5,6 @@ import math
     
 class ContadorPolichinelos:
     def __init__(self):
-        # Captura de vídeo padrão (câmera principal)
-        self.cap = cv2.VideoCapture(0)
-
-        # Inicializa o modelo de pose do MediaPipe
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose()
         self.mp_draw = mp.solutions.drawing_utils
@@ -130,6 +126,9 @@ class ContadorPolichinelos:
             if not success:
                 break
 
+            # Inverte imagem (efeito espelho)
+            img = cv2.flip(img, 1)
+            
             # Divide a imagem em duas metades (uma para cada pessoa)
             h, w, _ = img.shape
             metade1 = img[:, :w // 2]
@@ -182,7 +181,6 @@ class ContadorPolichinelos:
         # Libera recursos ao encerrar
         cap.release()
         cv2.destroyAllWindows()
-
 
 # Instância global (acessada pelo Flask)
 contador = ContadorPolichinelos()

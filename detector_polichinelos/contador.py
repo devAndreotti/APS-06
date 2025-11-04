@@ -129,6 +129,9 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
         if not success:
             break
 
+        # Inverte imagem (efeito espelho)
+        img = cv2.flip(img, 1)
+
         img = detector.find_pose(img)
         lm_list = detector.find_landmarks(img)
 

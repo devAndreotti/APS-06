@@ -82,6 +82,22 @@ def process_jumping_jack(lm_list, stage, count, calib, img, last_valid_lm):
     dist_quadris = math.dist(quadril_esq, quadril_dir)
     dist_tornozelos = math.dist(tornozelo_esq, tornozelo_dir)
 
+    # TRECHO COMENTADO, POIS NÃO FUNCIONOU
+    # Altura média dos tornozelos
+    # ankle_y = (tornozelo_esq[1] + tornozelo_dir[1]) / 2
+
+    # Limite para considerar "pulo" (pode ajustar 0.03 ~ 0.07) fazer teste para ajuste
+    # jump_threshold = img.shape[0] * 0.07  # 5% da altura do frame
+
+    # Detecta se houve um "pulo" (tornozelos sobem)
+    # pulou = False
+    # if last_ankle_y is not None:
+    #     if last_ankle_y - ankle_y > jump_threshold:
+    #         pulou = True
+
+    # Atualiza o último valor de tornozelo
+    # last_ankle_y = ankle_y
+
     # Define uma altura mínima que o braço deve subir para contar como levantado
     altura_minima_braço = img.shape[0] * 0.10  # 10% da altura da imagem
 
@@ -103,8 +119,7 @@ def process_jumping_jack(lm_list, stage, count, calib, img, last_valid_lm):
             count += 1
             stage = "down"
 
-    return stage, count, last_valid_lm
-
+    return stage, count, last_valid_lm #,last_ankle_y # TRECHO COMENTADO, POIS NÃO FUNCIONOU
 
 # Função principal que processa o vídeo e conta polichinelos em tempo real
 def processar_video(video_source, calibrar_callback, update_data_callback=None):
@@ -123,6 +138,7 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
     last_valid_lm = None
     calibrated = False
     calib = None
+    # last_ankle_y = None # TRECHO COMENTADO, POIS NÃO FUNCIONOU
 
     while True:
         success, img = cap.read()
@@ -156,7 +172,7 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
 
         # Processar contagem (agora calib nunca será None)
         stage, count, last_valid_lm = process_jumping_jack(
-            lm_list, stage, count, calib, img, last_valid_lm
+            lm_list, stage, count, calib, img, last_valid_lm #, last_ankle_y # TRECHO COMENTADO, POIS NÃO FUNCIONOU
         )
 
         # Calcular FPS
@@ -172,7 +188,6 @@ def processar_video(video_source, calibrar_callback, update_data_callback=None):
                 'fps': int(fps),
                 'calibrated': calibrated
             })
-
 
         # Codificar o frame para o Flask (streaming)
         _, buffer = cv2.imencode('.jpg', img)

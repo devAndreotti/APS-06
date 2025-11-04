@@ -6,7 +6,7 @@ import math
 class ContadorPolichinelos:
     def __init__(self):
         self.mp_pose = mp.solutions.pose
-        self.pose = self.mp_pose.Pose()
+        self.pose = self.mp_pose.Pose(model_complexity=0)
         self.mp_draw = mp.solutions.drawing_utils
 
         # Estado inicial de cada pessoa (para o modo 2 pessoas)

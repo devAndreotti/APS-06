@@ -47,7 +47,9 @@
     --space-sm2: 10px;
     --space-sm3: 13px;
     --space-md: 16px;
+    --space-md2: 20px;
     --space-lg: 24px;
+    --space-lg2: 28px;
     --space-xl: 32px;
     
     /* Transições */
@@ -123,7 +125,7 @@ html {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: 12px var(--space-lg);
+  padding: var(--space-sm3) var(--space-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border-hover);
   border-radius: var(--radius);

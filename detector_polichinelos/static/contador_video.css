@@ -7,6 +7,10 @@
   min-height: 100vh;
   position: relative;
   z-index: 1;
+  /* margem horizontal mínima em qualquer largura */
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
+  padding-bottom: var(--space-lg);
 }
 
 .contador-video-container {
@@ -15,6 +19,7 @@
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  /* garante respiro mesmo quando container encosta nas bordas */
 }
 
 /* Header */
@@ -63,7 +68,10 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: var(--space-xl);
-  margin-bottom: var(--space-xl);
+  /* mantém o conjunto de cards centralizado dentro do container em telas muito largas */
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .upload-card {
@@ -667,10 +675,6 @@ input[type="file"] {
 }
 
 @media (max-width: 768px) {
-  .contador-video-body {
-    padding: var(--space-sm);
-  }
-  
   .video-header {
     flex-direction: column;
     gap: var(--space-md);
@@ -739,6 +743,7 @@ input[type="file"] {
 @media (max-width: 480px) {
   .contador-video-body {
     padding: var(--space-xs);
+    padding-bottom: var(--space-md2);
   }
   
   .contador-video-container {

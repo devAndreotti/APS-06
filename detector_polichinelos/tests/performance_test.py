@@ -469,7 +469,7 @@ class PerformanceMonitor:
                         # Procurar por app.py ou flask
                         if ('app.py' in cmdline_str or 'flask' in cmdline_str) and 'python' in cmdline_str:
                             # Evitar pegar o próprio processo do teste
-                            if 'network_performance_test' not in cmdline_str:
+                            if 'performance_test' not in cmdline_str:
                                 self.flask_process = proc
                                 return proc
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -1290,7 +1290,7 @@ class PerformanceMonitor:
             'system_metrics': [asdict(m) for m in self.system_metrics]
         }
         
-        json_path = os.path.join(self.reports_dir, "network_memory_report.json")
+        json_path = os.path.join(self.reports_dir, "performance_report.json")
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(report_data, f, indent=2, ensure_ascii=False)
         
@@ -2172,12 +2172,6 @@ class PerformanceMonitor:
                     </div>
                 </div>
             </div>
-            
-            <div class="export-buttons">
-                <button class="btn" onclick="exportToJSON()">📄 Exportar JSON</button>
-                <button class="btn" onclick="exportToCSV()">📊 Exportar CSV</button>
-                <button class="btn" onclick="window.print()">🖨️ Imprimir</button>
-            </div>
         </div>
         
         <div class="footer">
@@ -2273,7 +2267,7 @@ class PerformanceMonitor:
 </html>
         """
         
-        html_path = os.path.join(self.reports_dir, "network_memory_report.html")
+        html_path = os.path.join(self.reports_dir, "performance_report.html")
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
         
@@ -2354,7 +2348,7 @@ async def main():
         print(f"📁 {Colors.info('Verifique os relatórios gerados em tests/reports/')}")
         
         # Abrir relatório HTML automaticamente no navegador
-        html_path = os.path.join(monitor.reports_dir, "network_memory_report.html")
+        html_path = os.path.join(monitor.reports_dir, "performance_report.html")
         if os.path.exists(html_path):
             # Converter caminho relativo para absoluto e usar formato file://
             html_abs_path = os.path.abspath(html_path)
